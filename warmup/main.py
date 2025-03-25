@@ -1,3 +1,5 @@
+import csv
+
 import numpy as np
 
 from sklearn import cluster
@@ -6,6 +8,20 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 def load(path):
+    points = []
+
+    with open(path, newline='') as file:
+        spamreader = csv.reader(file, delimiter=';', quotechar='|')
+        for row in spamreader:
+            points.append(row)
+
+    points_np = np.array(points)
+
+    labels = points_np[:,-1]
+    data = points_np[:, :-1]
+
+    return (data, labels)
+
     """
     Funkcja powinna wczytywać plik CSV, którego lokalizacja wskazywana jest przez argument
     oraz zwracać dwie tablice NumPy o rozmiarach Nxn oraz N, gdzie N to liczba obiektów,
