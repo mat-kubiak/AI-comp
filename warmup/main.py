@@ -67,9 +67,9 @@ def plot_voronoi_diagram(X, y_true, y_pred):
     fig = voronoi_plot_2d(
         vor,
         ax=ax,
-        show_points=True,
+        show_points=False,
         point_size=10,
-        line_alpha=0.2,
+        line_alpha=0.1,
         show_vertices=False
     )
 
@@ -78,7 +78,14 @@ def plot_voronoi_diagram(X, y_true, y_pred):
         if not -1 in region and point_id < N:
             color = color_map[y_pred[point_id]]
             polygon = vor.vertices[region]
-            plt.fill(*zip(*polygon), color=color, alpha=0.5)
+            plt.fill(*zip(*polygon), color=color, alpha=0.4)
+
+    if y_true is not None:
+        point_c = [color_map[int(float(i))] for i in y_true]
+    else:
+        point_c = 'black'
+
+    plt.scatter(X[:, 0], X[:, 1], c=point_c)
 
     pad_r = 1.07
     plt.xlim((x_min*pad_r, x_max*pad_r))
