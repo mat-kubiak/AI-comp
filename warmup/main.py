@@ -35,6 +35,37 @@ def load(path):
 
 
 def plot_voronoi_diagram(X, y_true, y_pred):
+
+    N = X.shape[0]
+
+    color_map = {
+        0: 'r',
+        1: 'g',
+        2: 'b',
+    }
+
+    vor = Voronoi(X)
+
+    fig, ax = plt.subplots()
+    fig = voronoi_plot_2d(
+        vor,
+        ax=ax,
+        show_points=True,
+        point_size=10,
+        line_alpha=0.5,
+        show_vertices=False
+    )
+
+    for point_id, region_id in enumerate(vor.point_region):
+        region = vor.regions[region_id]
+        color = color_map[y_pred[point_id]]
+
+        if not -1 in region:
+            polygon = vor.vertices[region]
+            plt.fill(*zip(*polygon), color=color, alpha=0.5)
+
+    plt.show()
+
     """
     Funkcja rysująca diagram Woronoja dla obiektów opisanych tablicą X rozmiaru Nx2 (N to liczba
     obiektów) pogrupowanych za pomocą etykiet y_pred (tablica liczby całkowitych o rozmiarze N).
