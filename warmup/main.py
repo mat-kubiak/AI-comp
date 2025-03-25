@@ -2,6 +2,10 @@ import csv
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
+from scipy.spatial import Voronoi, voronoi_plot_2d
+
 from sklearn import cluster
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
