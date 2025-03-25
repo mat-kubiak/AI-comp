@@ -48,7 +48,20 @@ def plot_voronoi_diagram(X, y_true, y_pred):
         2: 'b',
     }
 
-    vor = Voronoi(X)
+    x_max = np.max(X[:, 0])
+    x_min = np.min(X[:, 0])
+
+    y_max = np.max(X[:, 1])
+    y_min = np.min(X[:, 1])
+
+    vertices = np.array([
+        [x_min, y_min],
+        [x_max, y_min],
+        [x_min, y_max],
+        [x_max, y_max],
+    ])
+
+    vor = Voronoi(np.concatenate((X, vertices * 50)))
 
     fig, ax = plt.subplots()
     fig = voronoi_plot_2d(
@@ -56,18 +69,20 @@ def plot_voronoi_diagram(X, y_true, y_pred):
         ax=ax,
         show_points=True,
         point_size=10,
-        line_alpha=0.5,
+        line_alpha=0.2,
         show_vertices=False
     )
 
     for point_id, region_id in enumerate(vor.point_region):
         region = vor.regions[region_id]
-        color = color_map[y_pred[point_id]]
-
-        if not -1 in region:
+        if not -1 in region and point_id < N:
+            color = color_map[y_pred[point_id]]
             polygon = vor.vertices[region]
             plt.fill(*zip(*polygon), color=color, alpha=0.5)
 
+    pad_r = 1.07
+    plt.xlim((x_min*pad_r, x_max*pad_r))
+    plt.ylim((y_min*pad_r, y_max*pad_r))
     plt.show()
 
     """
