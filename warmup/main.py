@@ -16,7 +16,19 @@ color_map = {
     2: '#377EB8',
 }
 
+pad_r = 1.07
+
 def load(path):
+    """
+    Funkcja powinna wczytywać plik CSV, którego lokalizacja wskazywana jest przez argument
+    oraz zwracać dwie tablice NumPy o rozmiarach Nxn oraz N, gdzie N to liczba obiektów,
+    a n to liczba wymiarów. Tablice te odpowiadają cechom N obiektów w n-wymiarowej przestrzeni
+    (liczby rzeczywiste) oraz ich etyketom (liczby całkowite od 0 do L-1 gdzie L to liczba
+    etykiet). Zakładamy, że w pliku CSV jest N linii odpowiadających obiektom, a każda linia
+    zaweira n+1 liczb odpowiadających wpierw kolejnym cechom obiektu (n wartości) i jego
+    etykiecie (1 wartość). Liczby w każdej linii pliku CSV oddzielone są średnikami.
+    """
+
     points = []
 
     with open(path, newline='') as file:
@@ -31,17 +43,14 @@ def load(path):
 
     return (data, labels)
 
-    """
-    Funkcja powinna wczytywać plik CSV, którego lokalizacja wskazywana jest przez argument
-    oraz zwracać dwie tablice NumPy o rozmiarach Nxn oraz N, gdzie N to liczba obiektów,
-    a n to liczba wymiarów. Tablice te odpowiadają cechom N obiektów w n-wymiarowej przestrzeni
-    (liczby rzeczywiste) oraz ich etyketom (liczby całkowite od 0 do L-1 gdzie L to liczba
-    etykiet). Zakładamy, że w pliku CSV jest N linii odpowiadających obiektom, a każda linia
-    zaweira n+1 liczb odpowiadających wpierw kolejnym cechom obiektu (n wartości) i jego
-    etykiecie (1 wartość). Liczby w każdej linii pliku CSV oddzielone są średnikami.
-    """
-
 def plot_voronoi_diagram(X, y_true, y_pred):
+    """
+    Funkcja rysująca diagram Woronoja dla obiektów opisanych tablicą X rozmiaru Nx2 (N to liczba
+    obiektów) pogrupowanych za pomocą etykiet y_pred (tablica liczby całkowitych o rozmiarze N).
+    Parametr y_true może być równy None, i wtedy nie znamy prawdziwich etykiet, lub być tablicą
+    N elementową z prawdziwymi etykietami. Rysując diagram należy zadbać, aby wszystkie obiekty
+    były widoczne. Wszystkie rozważane tablice są tablicami NumPy.
+    """
 
     N = X.shape[0]
 
@@ -84,20 +93,22 @@ def plot_voronoi_diagram(X, y_true, y_pred):
 
     plt.scatter(X[:, 0], X[:, 1], c=point_c)
 
-    pad_r = 1.07
     plt.xlim((x_min*pad_r, x_max*pad_r))
     plt.ylim((y_min*pad_r, y_max*pad_r))
     plt.show()
 
+def plot_decision_boundary(X, y_true, func):
     """
-    Funkcja rysująca diagram Woronoja dla obiektów opisanych tablicą X rozmiaru Nx2 (N to liczba
-    obiektów) pogrupowanych za pomocą etykiet y_pred (tablica liczby całkowitych o rozmiarze N).
-    Parametr y_true może być równy None, i wtedy nie znamy prawdziwich etykiet, lub być tablicą
-    N elementową z prawdziwymi etykietami. Rysując diagram należy zadbać, aby wszystkie obiekty
-    były widoczne. Wszystkie rozważane tablice są tablicami NumPy.
+    Funkcja rysująca granicę decyzyjną wyznaczaną przez funkcję klasyfikując func. Funkcja ta
+    przyjmuje tablicę obiektów X o rozmiarze Nx2 (N to liczba obiektów) i zwraca tablicę liczb
+    całkowitych o rozmiarze N zawierającą etykiety tych obiektów. W tym wypadku N może być
+    dowolne. Argumenty X i y_true to tablice zawierające dane związane z tym samym problemem
+    klasyfikacji (na przykład treningowe czy testowe). Pierwsza z nich ma rozmiar Nx2 i zawiera
+    cechy N obiektów, druga zawiera N liczb całkowitych oznaczających prawdziwe etykiety tych
+    obiektów. Rysując diagram należy zadbać, aby wszystkie obiekty były widoczne. Wszystkie
+    rozważane tablice są tablicami NumPy.
     """
 
-def plot_decision_boundary(X, y_true, func):
     N = X.shape[0]
 
     x_max = np.max(X[:, 0])
@@ -107,7 +118,6 @@ def plot_decision_boundary(X, y_true, func):
     y_min = np.min(X[:, 1])
 
     step = 0.01
-    pad_r = 1.07
 
     xx = np.arange(x_min*pad_r, x_max*pad_r, step)
     yy = np.arange(y_min*pad_r, y_max*pad_r, step)
@@ -135,17 +145,6 @@ def plot_decision_boundary(X, y_true, func):
     plt.scatter(X[:, 0], X[:, 1], c=point_c)
 
     plt.show()
-
-    """
-    Funkcja rysująca granicę decyzyjną wyznaczaną przez funkcję klasyfikując func. Funkcja ta
-    przyjmuje tablicę obiektów X o rozmiarze Nx2 (N to liczba obiektów) i zwraca tablicę liczb
-    całkowitych o rozmiarze N zawierającą etykiety tych obiektów. W tym wypadku N może być
-    dowolne. Argumenty X i y_true to tablice zawierające dane związane z tym samym problemem
-    klasyfikacji (na przykład treningowe czy testowe). Pierwsza z nich ma rozmiar Nx2 i zawiera
-    cechy N obiektów, druga zawiera N liczb całkowitych oznaczających prawdziwe etykiety tych
-    obiektów. Rysując diagram należy zadbać, aby wszystkie obiekty były widoczne. Wszystkie
-    rozważane tablice są tablicami NumPy.
-    """
 
 if __name__ == "__main__":
     X, y_true = load("./data.csv")
