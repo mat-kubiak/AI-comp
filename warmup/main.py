@@ -91,10 +91,11 @@ def plot_voronoi_diagram(X, y_true, y_pred):
     else:
         point_c = 'black'
 
-    plt.scatter(X[:, 0], X[:, 1], c=point_c)
+    plt.scatter(X[:, 0], X[:, 1], c=point_c, zorder=10)
 
     plt.xlim((x_min*pad_r, x_max*pad_r))
     plt.ylim((y_min*pad_r, y_max*pad_r))
+    plt.savefig(f'voronoi_{'color' if y_true is not None else 'nocolor'}.png', dpi=200)
     plt.show()
 
 def plot_decision_boundary(X, y_true, func):
@@ -143,7 +144,8 @@ def plot_decision_boundary(X, y_true, func):
 
     point_c = [color_map[int(float(i))] for i in y_true]
     plt.scatter(X[:, 0], X[:, 1], c=point_c)
-
+    
+    plt.savefig(f'boundary.png', dpi=200)
     plt.show()
 
 if __name__ == "__main__":
