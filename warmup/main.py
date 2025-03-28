@@ -10,6 +10,11 @@ from sklearn import cluster
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 
+color_map = {
+    0: '#FF8002',
+    1: '#4DAD4A',
+    2: '#377EB8',
+}
 
 def load(path):
     points = []
@@ -35,18 +40,10 @@ def load(path):
     zaweira n+1 liczb odpowiadających wpierw kolejnym cechom obiektu (n wartości) i jego
     etykiecie (1 wartość). Liczby w każdej linii pliku CSV oddzielone są średnikami.
     """
-    pass
-
 
 def plot_voronoi_diagram(X, y_true, y_pred):
 
     N = X.shape[0]
-
-    color_map = {
-        0: 'r',
-        1: 'g',
-        2: 'b',
-    }
 
     x_max = np.max(X[:, 0])
     x_min = np.min(X[:, 0])
@@ -99,10 +96,46 @@ def plot_voronoi_diagram(X, y_true, y_pred):
     N elementową z prawdziwymi etykietami. Rysując diagram należy zadbać, aby wszystkie obiekty
     były widoczne. Wszystkie rozważane tablice są tablicami NumPy.
     """
-    pass
-
 
 def plot_decision_boundary(X, y_true, func):
+    N = X.shape[0]
+
+    x_max = np.max(X[:, 0])
+    x_min = np.min(X[:, 0])
+
+    y_max = np.max(X[:, 1])
+    y_min = np.min(X[:, 1])
+
+    step = 0.01
+    pad_r = 1.07
+
+    xx = np.arange(x_min*pad_r, x_max*pad_r, step)
+    yy = np.arange(y_min*pad_r, y_max*pad_r, step)
+
+    xx, yy = np.meshgrid(xx, yy)
+
+    r1, r2 = xx.flatten(), yy.flatten()
+    r1, r2 = r1.reshape((len(r1), 1)), r2.reshape((len(r2), 1))
+
+    grid = np.hstack((r1, r2))
+
+    yhat = func(grid)
+    yhat = np.array([float(x) for x in yhat])
+    zz = yhat.reshape(xx.shape)
+
+    levels = [0.0, 1.0, 2.0]
+
+    colors = [color_map[int(x)] for x in levels]
+    colors.append('white')
+
+    plt.contourf(xx, yy, zz, levels=levels, colors=colors, extend='both', alpha=0.4)
+    plt.contour(xx, yy, zz, levels=levels, colors='black', extend='both', linewidths=1.0)
+
+    point_c = [color_map[int(float(i))] for i in y_true]
+    plt.scatter(X[:, 0], X[:, 1], c=point_c)
+
+    plt.show()
+
     """
     Funkcja rysująca granicę decyzyjną wyznaczaną przez funkcję klasyfikując func. Funkcja ta
     przyjmuje tablicę obiektów X o rozmiarze Nx2 (N to liczba obiektów) i zwraca tablicę liczb
@@ -113,8 +146,6 @@ def plot_decision_boundary(X, y_true, func):
     obiektów. Rysując diagram należy zadbać, aby wszystkie obiekty były widoczne. Wszystkie
     rozważane tablice są tablicami NumPy.
     """
-    pass
-
 
 if __name__ == "__main__":
     X, y_true = load("./data.csv")
