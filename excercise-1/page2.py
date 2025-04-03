@@ -6,8 +6,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
 from sklearn.cluster import DBSCAN
 
+OUT_DIR = 'page2'
+
 from pathlib import Path
-Path("output").mkdir(parents=True, exist_ok=True)
+Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
 
 import utils # utils.py
 
@@ -52,7 +54,7 @@ def main():
         for i, ncl in enumerate(n_clusters):
             ax.annotate(ncl, (eps_range[i], -0.8), textcoords="offset points", xytext=(10,0), ha='left')
         
-        fig.savefig(f"output/{filename[0:-4]}_silhouette.png")
+        fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_silhouette.png")
         plt.show()
 
         # check worst and best case
@@ -66,11 +68,11 @@ def main():
 
         # worst case
         y_pred, n_worst = compute_DBSCAN(x, e_worst)
-        utils.plot_voronoi_diagram(x, y_pred, n_worst, f'output/{filename[0:-4]}_worst.png')
+        utils.plot_voronoi_diagram(x, y_pred, n_worst, f'{OUT_DIR}/{filename[0:-4]}_worst.png')
 
         # best case
         y_pred, n_best = compute_DBSCAN(x, e_best)
-        utils.plot_voronoi_diagram(x, y_pred, n_best, f'output/{filename[0:-4]}_best.png')
+        utils.plot_voronoi_diagram(x, y_pred, n_best, f'{OUT_DIR}/{filename[0:-4]}_best.png')
 
 if __name__ == '__main__':
     main()

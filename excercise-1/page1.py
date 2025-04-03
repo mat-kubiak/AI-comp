@@ -7,8 +7,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import silhouette_score
 
+OUT_DIR = 'page1'
+
 from pathlib import Path
-Path("output").mkdir(parents=True, exist_ok=True)
+Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
 
 import utils # utils.py
 
@@ -38,7 +40,7 @@ def main():
         ax.grid(True, axis='x', linestyle='--', linewidth=1.5, alpha=0.8)
         ax.set_ylim(-1.0, 1.0)
         ax.set(xlabel='n clusters', ylabel='silhouette score', title=f'Silhouette score for `{filename}`')
-        fig.savefig(f"output/{filename[0:-4]}_silhouette.png")
+        fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_silhouette.png")
         plt.show()
 
         i_worst = np.argmin(s_scores)
@@ -51,11 +53,11 @@ def main():
 
         # worst case
         y_pred = compute_k_means(x, n_worst)
-        utils.plot_voronoi_diagram(x, y_pred, n_worst, f'output/{filename[0:-4]}_worst.png')
+        utils.plot_voronoi_diagram(x, y_pred, n_worst, f'{OUT_DIR}/{filename[0:-4]}_worst.png')
 
         # best case
         y_pred = compute_k_means(x, n_best)
-        utils.plot_voronoi_diagram(x, y_pred, n_best, f'output/{filename[0:-4]}_best.png')
+        utils.plot_voronoi_diagram(x, y_pred, n_best, f'{OUT_DIR}/{filename[0:-4]}_best.png')
 
 if __name__ == '__main__':
     main()
