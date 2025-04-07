@@ -23,7 +23,7 @@ def compute_DBSCAN(x, eps):
 def main():
 
     n_samples = 20
-    eps_range = np.linspace(0.0, 2.0, n_samples+1)[1:]
+    eps_range = np.linspace(0.0, 2.0, n_samples+1, endpoint=False)[1:]
 
     for filename in utils.files:
         x, y = utils.load('./data/' + filename)
@@ -45,15 +45,18 @@ def main():
         # display scores plot
         fig, ax = plt.subplots()
         ax.plot(eps_range, s_scores)
-        ax.grid(True, axis='x', linestyle='--', linewidth=1.5, alpha=0.8)
-        ax.set_ylim(-1.0, 1.0)
-        ax.set_xlim(np.min(eps_range), np.max(eps_range))
+        ax.set_ylim(0.0, 1.0)
+        ax.set_xlim(0.0, 2.0)
+
         ax.set(xlabel='eps', ylabel='silhouette score', title=f'Silhouette score for `{filename}`')
+
+        ax.vlines(eps_range, -1.0, 1.0, colors='black', linestyles='--', alpha=0.2)
 
         # create text annotations
         for i, ncl in enumerate(n_clusters):
-            ax.annotate(ncl, (eps_range[i], -0.8), textcoords="offset points", xytext=(10,0), ha='left')
+            ax.annotate(ncl, (eps_range[i], 0.05), textcoords="offset points", xytext=(5,0), ha='left')
         
+        fig.set_size_inches(10, 6)
         fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_silhouette.png")
         plt.show()
 
