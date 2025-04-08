@@ -45,7 +45,7 @@ def main():
         # display scores plot
         fig, ax = plt.subplots()
         ax.plot(eps_range, s_scores)
-        ax.set_ylim(0.0, 1.0)
+        ax.set_ylim(-1.0, 1.0)
         ax.set_xlim(0.0, 2.0)
 
         ax.set(xlabel='eps', ylabel='silhouette score', title=f'Silhouette score for `{filename}`')
@@ -54,7 +54,7 @@ def main():
 
         # create text annotations
         for i, ncl in enumerate(n_clusters):
-            ax.annotate(ncl, (eps_range[i], 0.05), textcoords="offset points", xytext=(5,0), ha='left')
+            ax.annotate(ncl, (eps_range[i], -0.8), textcoords="offset points", xytext=(5,0), ha='left')
         
         fig.set_size_inches(10, 6)
         fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_silhouette.png")

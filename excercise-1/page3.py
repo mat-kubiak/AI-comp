@@ -51,14 +51,16 @@ def main():
         ax.plot(clusters_range, comp_scores, label="Completeness")
 
         ax.grid(True, axis='x', linestyle='--', linewidth=1.5, alpha=0.8)
-        ax.set_ylim(-0.05, 1.05)
+        ax.set_ylim(-1.15, 1.15)
         ax.set(xlabel='n clusters')
+        ax.set(title=f'Measures for `{filename}`')
         ax.legend()
         fig.set_size_inches(10, 6)
         fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_scores.png")
         plt.show()
 
-        combined_scores = np.array(rand_scores) + np.array(homo_scores) + np.array(comp_scores)
+        # weighted average
+        combined_scores = (np.array(rand_scores) + np.array(homo_scores) + np.array(comp_scores)) / 3
 
         i_worst = np.argmin(combined_scores)
         i_best = np.argmax(combined_scores)

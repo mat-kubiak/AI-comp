@@ -38,7 +38,7 @@ def main():
         ax.plot(clusters_range, s_scores)
 
         ax.grid(True, axis='x', linestyle='--', linewidth=1.5, alpha=0.8)
-        ax.set_ylim(0.0, 1.0)
+        ax.set_ylim(-1.0, 1.0)
         ax.set(xlabel='n clusters', ylabel='silhouette score', title=f'Silhouette score for `{filename}`')
         fig.set_size_inches(10, 6)
         fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_silhouette.png")

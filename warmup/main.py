@@ -95,7 +95,7 @@ def plot_voronoi_diagram(X, y_true, y_pred):
 
     plt.xlim((x_min*pad_r, x_max*pad_r))
     plt.ylim((y_min*pad_r, y_max*pad_r))
-    plt.savefig(f'voronoi_{'color' if y_true is not None else 'nocolor'}.png', dpi=200)
+    plt.savefig(f"voronoi_{'color' if y_true is not None else 'nocolor'}.png", dpi=200)
     plt.show()
 
 def plot_decision_boundary(X, y_true, func):

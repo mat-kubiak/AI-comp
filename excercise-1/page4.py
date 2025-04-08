@@ -56,12 +56,13 @@ def main():
         ax.plot(eps_range, rand_scores, label="Adjusted Rand")
         ax.plot(eps_range, homo_scores, label="Homogeneity")
         ax.plot(eps_range, comp_scores, label="Completeness")
-        ax.set_ylim(-0.05, 1.05)
+        ax.set( title=f'Measures for `{filename}`')
+        ax.set_ylim(-1.15, 1.15)
         ax.set_xlim(0.0, 2.0)
 
         ax.set(xlabel='eps')
 
-        ax.vlines(eps_range, -1.0, 1.0, colors='black', linestyles='--', alpha=0.2)
+        ax.vlines(eps_range, -1.15, 1.15, colors='black', linestyles='--', alpha=0.2)
 
         # create text annotations
         for i, ncl in enumerate(n_clusters):

@@ -80,7 +80,7 @@ def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_
 
     fig.set_size_inches(8, 6)
     if filename == None:
-        plt.savefig(f'voronoi_{'color' if y_true is not None else 'nocolor'}.png', dpi=200)
+        plt.savefig(f"voronoi_{'color' if y_true is not None else 'nocolor'}.png", dpi=200)
     else:
         plt.savefig(filename, dpi=200)
     plt.show()
