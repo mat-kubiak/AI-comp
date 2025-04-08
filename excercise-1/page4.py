@@ -71,8 +71,7 @@ def main():
         fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_scores.png")
         plt.show()
 
-        # weighted average with 100% ARI and completeness and 20% homogeneity
-        combined_scores = (np.array(rand_scores) + 0.2 * np.array(homo_scores) + np.array(comp_scores)) / 2.2
+        combined_scores = np.array(rand_scores) + np.array(homo_scores) + np.array(comp_scores)
 
         # check worst and best case
         i_worst = np.argmin(combined_scores)
