@@ -31,7 +31,7 @@ def load(path):
 
     return (data, labels)
 
-def plot_voronoi_diagram(X, y_pred, n_clusters, filename=None, pad_r=1.07):
+def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_r=1.07):
     N = X.shape[0]
 
     x_max = np.max(X[:, 0])
@@ -68,7 +68,12 @@ def plot_voronoi_diagram(X, y_pred, n_clusters, filename=None, pad_r=1.07):
             polygon = vor.vertices[region]
             plt.fill(*zip(*polygon), color=colors[y_pred[point_id]], alpha=0.4)
 
-    plt.scatter(X[:, 0], X[:, 1], c='black', zorder=10)
+    c_color = 'black'
+    if y_true is not None:
+        p_colors = cmap(np.linspace(0, 1, len(np.unique(y_true))))
+        c_color = [p_colors[int(float(i))] for i in y_true]
+
+    plt.scatter(X[:, 0], X[:, 1], c=c_color, zorder=10)
 
     plt.xlim((x_min*pad_r, x_max*pad_r))
     plt.ylim((y_min*pad_r, y_max*pad_r))

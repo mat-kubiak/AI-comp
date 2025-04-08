@@ -85,11 +85,11 @@ def main():
 
         # worst case
         y_pred, n_worst = compute_DBSCAN(x, e_worst)
-        utils.plot_voronoi_diagram(x, y_pred, n_worst, f'{OUT_DIR}/{filename[0:-4]}_worst.png')
+        utils.plot_voronoi_diagram(x, y_pred, n_worst, y_true=y, filename=f'{OUT_DIR}/{filename[0:-4]}_worst.png')
 
         # best case
         y_pred, n_best = compute_DBSCAN(x, e_best)
-        utils.plot_voronoi_diagram(x, y_pred, n_best, f'{OUT_DIR}/{filename[0:-4]}_best.png')
+        utils.plot_voronoi_diagram(x, y_pred, n_best, y_true=y, filename=f'{OUT_DIR}/{filename[0:-4]}_best.png')
 
 if __name__ == '__main__':
     main()
