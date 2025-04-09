@@ -57,16 +57,16 @@ def main():
         ax.plot(eps_range, homo_scores, label="Homogeneity")
         ax.plot(eps_range, comp_scores, label="Completeness")
         ax.set( title=f'Measures for `{filename}`')
-        ax.set_ylim(-1.15, 1.15)
+        ax.set_ylim(-1.0, 1.15)
         ax.set_xlim(0.0, 2.0)
 
         ax.set(xlabel='eps')
 
-        ax.vlines(eps_range, -1.15, 1.15, colors='black', linestyles='--', alpha=0.2)
+        ax.vlines(eps_range, -1.0, 1.15, colors='black', linestyles='--', alpha=0.2)
 
         # create text annotations
         for i, ncl in enumerate(n_clusters):
-            ax.annotate(ncl, (eps_range[i], 0.05), textcoords="offset points", xytext=(5,0), ha='left')
+            ax.annotate(ncl, (eps_range[i], -0.8), textcoords="offset points", xytext=(5,0), ha='left')
 
         fig.set_size_inches(10, 6)
         fig.savefig(f"{OUT_DIR}/{filename[0:-4]}_scores.png")
