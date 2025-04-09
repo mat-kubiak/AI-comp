@@ -1,10 +1,12 @@
+import os
+os.environ["OMP_NUM_THREADS"] = '1'
+
 import numpy as np
 
 import matplotlib.pyplot as plt
 
 from sklearn import cluster
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import silhouette_score
 
 OUT_DIR = 'page1'
