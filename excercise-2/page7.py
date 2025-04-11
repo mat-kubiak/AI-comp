@@ -1,10 +1,8 @@
 import utils
 from matplotlib import pyplot as plt
-from pyomo.contrib.parmest.graphics import sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import numpy as np
-from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 import torch
 import torch.nn as nn
@@ -12,14 +10,6 @@ import torch.optim as optim
 
 OUT_DIR = 'page7'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-def plot_confusion_matrix(cm, classes, title):
-    # Plot confusion matrix using Seaborn heatmap
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=classes, yticklabels=classes)
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.title(title)
-
 
 def plot_decision_boundary(model, X, y, title):
     # Create a meshgrid over the input space
@@ -139,7 +129,7 @@ def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name):
     # Confusion matrix for the worst accuracy
     X_train_tensor = torch.tensor(X_train_scaled, dtype=torch.float32).to(device)
     worst_preds = worst_mlp_model(X_train_tensor).argmax(dim=1).cpu().numpy()
-    plot_confusion_matrix(confusion_matrix(y_train, worst_preds),
+    utils.plot_confusion_matrix(confusion_matrix(y_train, worst_preds),
                           classes=np.unique(y_train),
                           title=f"Confusion Matrix - Worst Accuracy ({dataset_name})")
     plt.savefig(f"{OUT_DIR}/confusion_matrix_worst_accuracy_{dataset_name}_train.png")
@@ -147,7 +137,7 @@ def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name):
 
     # Confusion matrix for the best accuracy
     best_preds = best_mlp_model(X_train_tensor).argmax(dim=1).cpu().numpy()
-    plot_confusion_matrix(confusion_matrix(y_train, best_preds),
+    utils.plot_confusion_matrix(confusion_matrix(y_train, best_preds),
                           classes=np.unique(y_train),
                           title=f"Confusion Matrix - Best Accuracy ({dataset_name})")
     plt.savefig(f"{OUT_DIR}/confusion_matrix_best_accuracy_{dataset_name}_train.png")
