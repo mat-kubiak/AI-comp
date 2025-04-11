@@ -15,7 +15,7 @@ torch.manual_seed(0)
 OUT_DIR = 'page1'
 KERNELS = ['linear', 'rbf']
 C_VALUES = [0.1, 1, 10, 100]
-ACTIVATIONS = {'relu': nn.ReLU(), 'tanh': nn.Tanh(), 'sigmoid': nn.Sigmoid()}
+ACTIVATIONS = {'relu': nn.ReLU(),  'identity': nn.Identity()}
 HIDDEN_SIZES = [5, 10, 20, 50]
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
