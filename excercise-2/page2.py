@@ -32,7 +32,6 @@ def plot_decision_boundary(model, X, y, title):
 
 def plot_confusion_matrix(cm, classes, title):
     # Plot confusion matrix using Seaborn heatmap
-    print(cm)
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=classes, yticklabels=classes)
     plt.xlabel('Predicted')
     plt.ylabel('True')
@@ -45,7 +44,6 @@ def train_knn(X_train, y_train, X_test, y_test, min_neighbors, max_neighbors):
     accuracies_train = []
     accuracies_test = []
     best_acc = 0
-    best_n_neighbors = 0
 
     # To hold the confusion matrices
     cm_train_best = None
@@ -68,11 +66,10 @@ def train_knn(X_train, y_train, X_test, y_test, min_neighbors, max_neighbors):
         # Update the best confusion matrices if this model is the best one for accuracy
         if acc_test > best_acc:
             best_acc = acc_test
-            best_n_neighbors = n_neighbors
             cm_train_best = cm_train
             cm_test_best = cm_test
 
-    return accuracies_train, accuracies_test, best_n_neighbors, cm_train_best, cm_test_best
+    return accuracies_train, accuracies_test, cm_train_best, cm_test_best
 
 
 def run_knn_experiment(X_train, y_train, X_test, y_test, dataset_name, min_neighbors=1, max_neighbors=20):
@@ -83,21 +80,15 @@ def run_knn_experiment(X_train, y_train, X_test, y_test, dataset_name, min_neigh
     X_test_scaled = scaler.transform(X_test)
 
     # Train the KNN models
-    accuracies_train, accuracies_test, best_n_neighbors, cm_train_best, cm_test_best = train_knn(
-        X_train_scaled, y_train, X_test_scaled , y_test, min_neighbors, max_neighbors
-    )
-
-    accuracies_train, accuracies_test, best_n_neighbors, cm_train_best, cm_test_best = train_knn(
-        X_train, y_train, X_test, y_test, min_neighbors, max_neighbors)
-
+    accuracies_train, accuracies_test, cm_train_best, cm_test_best = train_knn(
+        X_train_scaled, y_train, X_test_scaled, y_test, min_neighbors, max_neighbors)
 
 
     # Identify the best, worst, and biggest accuracy cases (based on test accuracy)
-    biggest_acc_idx = np.argmax(accuracies_test)  # Index of highest test accuracy (biggest)
+    best_acc_idx = np.argmax(accuracies_test)  # Index of highest test accuracy (biggest)
     worst_acc_idx = np.argmin(accuracies_test)  # Index of lowest test accuracy (worst)
-    best_n_neighbors = best_n_neighbors  # Best neighbors based on highest test accuracy
 
-    biggest_n_neighbors = biggest_acc_idx + min_neighbors  # Biggest neighbors based on highest accuracy
+    best_n_neighbors = best_acc_idx + min_neighbors  # Biggest neighbors based on highest accuracy
     worst_n_neighbors = worst_acc_idx + min_neighbors  # Worst neighbors based on lowest accuracy
 
     # Plot accuracy vs number of neighbors
@@ -114,10 +105,6 @@ def run_knn_experiment(X_train, y_train, X_test, y_test, dataset_name, min_neigh
     plt.savefig(f"{OUT_DIR}/accuracy_vs_neighbors_{dataset_name}.png")
     plt.close()
 
-    # Train KNN models for best, worst, and biggest accuracy neighbors
-    biggest_knn_model = KNeighborsClassifier(n_neighbors=biggest_n_neighbors)
-    biggest_knn_model.fit(X_train, y_train)
-
     worst_knn_model = KNeighborsClassifier(n_neighbors=worst_n_neighbors)
     worst_knn_model.fit(X_train, y_train)
 
@@ -130,11 +117,6 @@ def run_knn_experiment(X_train, y_train, X_test, y_test, dataset_name, min_neigh
     plt.savefig(f"{OUT_DIR}/decision_boundary_worst_accuracy_{dataset_name}.png")
     plt.close()
 
-    # Decision boundary for the biggest accuracy (highest test accuracy)
-    plot_decision_boundary(biggest_knn_model, X_train, y_train,
-                           f"Decision Boundary - Biggest Accuracy ({dataset_name})")
-    plt.savefig(f"{OUT_DIR}/decision_boundary_biggest_accuracy_{dataset_name}.png")
-    plt.close()
 
     # Decision boundary for the best accuracy (based on test set)
     plot_decision_boundary(best_knn_model, X_train, y_train, f"Decision Boundary - Best Accuracy ({dataset_name})")
@@ -149,12 +131,6 @@ def run_knn_experiment(X_train, y_train, X_test, y_test, dataset_name, min_neigh
     plt.savefig(f"{OUT_DIR}/confusion_matrix_worst_accuracy_{dataset_name}_train.png")
     plt.close()
 
-    # Confusion matrix for the biggest accuracy
-    plot_confusion_matrix(confusion_matrix(y_train, biggest_knn_model.predict(X_train)),
-                          classes=np.unique(y_train),
-                          title=f"Confusion Matrix - Biggest Accuracy ({dataset_name})")
-    plt.savefig(f"{OUT_DIR}/confusion_matrix_biggest_accuracy_{dataset_name}_train.png")
-    plt.close()
 
     # Confusion matrix for the best accuracy
     plot_confusion_matrix(confusion_matrix(y_train, best_knn_model.predict(X_train)),
