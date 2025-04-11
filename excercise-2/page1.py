@@ -136,12 +136,26 @@ def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name):
 
 # === Run all experiments ===
 
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
 for filename in utils.files:
     data, labels = utils.load('./data/' + filename)
 
+    # Split data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
         data, labels, test_size=0.2, random_state=42, stratify=labels
     )
 
-    run_svm_experiment(X_train, y_train, X_test, y_test, filename)
-    run_mlp_experiment(X_train, y_train, X_test, y_test, filename)
+    # Standardize the features using StandardScaler
+    scaler = StandardScaler()
+
+    # Fit the scaler on the training data and transform both the train and test data
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    # Run the SVM experiment on the standardized data
+    run_svm_experiment(X_train_scaled, y_train, X_test_scaled, y_test, filename)
+
+    # Run the MLP experiment on the standardized data
+    run_mlp_experiment(X_train_scaled, y_train, X_test_scaled, y_test, filename)
