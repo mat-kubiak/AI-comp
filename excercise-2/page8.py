@@ -171,7 +171,7 @@ for filename in utils.files[2:]:
     data, labels = utils.load('./data/' + filename)
 
     X_train, X_test, y_train, y_test = train_test_split(
-        data, labels, test_size=0.8, random_state=42, stratify=labels
+        data, labels, test_size=0.2, train_size=0.8, random_state=42, stratify=labels
     )
 
     run_mlp_experiment(X_train, y_train, X_test, y_test, filename)
