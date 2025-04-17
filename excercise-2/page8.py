@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import numpy as np
 import tqdm
+import copy
 
 OUT_DIR = 'page8'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -63,6 +64,11 @@ def train_mlp(X_train, y_train, X_test, y_test, hidden_size, num_epochs):
 
     accuracies_train_epoch = []
     accuracies_test_epoch = []
+    
+    models = {} # {'first', 'last', 'best'}
+    best_model = None
+    best_acc = -1
+
     for epoch in tqdm.tqdm(range(num_epochs)):
         model.train()
         optimizer.zero_grad()
@@ -84,7 +90,17 @@ def train_mlp(X_train, y_train, X_test, y_test, hidden_size, num_epochs):
             test_acc = (test_preds == y_test_tensor).float().mean().item()
             accuracies_test_epoch.append(test_acc)
 
-    return model, accuracies_train_epoch, accuracies_test_epoch
+            if test_acc > best_acc:
+                models['best'] = copy.deepcopy(model)
+                best_acc = test_acc
+
+        # model snapshots
+        if epoch == 0:
+            models['first'] = copy.deepcopy(model)
+        if epoch == num_epochs - 1:
+            models['last'] = model
+
+    return models, accuracies_train_epoch, accuracies_test_epoch
 
 
 # Function for running the experiment multiple times and collecting results
@@ -93,6 +109,7 @@ def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_e
 
     for run in range(num_runs):
         print(f'Run # {run+1}:')
+        models, accuracies_train_epoch, accuracies_test_epoch = train_mlp(X_train, y_train, X_test, y_test, hidden_size, num_epochs)
 
         # Get accuracies for the first, best, and last epochs
         first_epoch_acc_train = accuracies_train_epoch[0]
@@ -119,17 +136,17 @@ def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_e
 
         # Plot Decision Boundary for the first, best, and last epochs
         # First Epoch
-        plot_decision_boundary(model, X_train, y_train, f"Decision Boundary - First Epoch ({dataset_name} - Run {run + 1})")
+        plot_decision_boundary(models['first'], X_train, y_train, f"Decision Boundary - First Epoch ({dataset_name} - Run {run + 1})")
         plt.savefig(f"{OUT_DIR}/decision_boundary_first_epoch_run{run + 1}_{dataset_name}.png")
         plt.close()
 
         # Best Epoch (highest test accuracy)
-        plot_decision_boundary(model, X_train, y_train, f"Decision Boundary - Best Epoch ({dataset_name} - Run {run + 1})")
+        plot_decision_boundary(models['best'], X_train, y_train, f"Decision Boundary - Best Epoch ({dataset_name} - Run {run + 1})")
         plt.savefig(f"{OUT_DIR}/decision_boundary_best_epoch_run{run + 1}_{dataset_name}.png")
         plt.close()
 
         # Last Epoch
-        plot_decision_boundary(model, X_train, y_train, f"Decision Boundary - Last Epoch ({dataset_name} - Run {run + 1})")
+        plot_decision_boundary(models['last'], X_train, y_train, f"Decision Boundary - Last Epoch ({dataset_name} - Run {run + 1})")
         plt.savefig(f"{OUT_DIR}/decision_boundary_last_epoch_run{run + 1}_{dataset_name}.png")
         plt.close()
 
