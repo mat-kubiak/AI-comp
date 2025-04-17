@@ -104,12 +104,25 @@ def train_mlp(X_train, y_train, X_test, y_test, hidden_size, num_epochs):
 
 
 # Function for running the experiment multiple times and collecting results
-def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_epochs, hidden_size=41, num_runs=10):
+def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_epochs, hidden_size, num_runs=10):
     results = []
 
     for run in range(num_runs):
         print(f'Run # {run+1}:')
         models, accuracies_train_epoch, accuracies_test_epoch = train_mlp(X_train, y_train, X_test, y_test, hidden_size, num_epochs)
+
+        # Plot the accuracy over epochs for the first run
+        if run == 0:
+            plt.figure(figsize=(10, 6))
+            plt.plot(range(1, num_epochs + 1), accuracies_train_epoch, label='Train Accuracy', color='b')
+            plt.plot(range(1, num_epochs + 1), accuracies_test_epoch, label='Test Accuracy', color='r')
+            plt.title(f"Accuracy Over Epochs ({dataset_name}, run 1)", fontsize=14)
+            plt.xlabel("Epoch", fontsize=12)
+            plt.ylabel("Accuracy", fontsize=12)
+            plt.legend()
+            plt.grid(True)
+            plt.savefig(f"{OUT_DIR}/accuracy_over_epochs_{dataset_name}.png")
+            plt.close()
 
         # Get accuracies for the first, best, and last epochs
         first_epoch_acc_train = accuracies_train_epoch[0]
@@ -137,17 +150,17 @@ def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_e
         # Plot Decision Boundary for the first, best, and last epochs
         # First Epoch
         plot_decision_boundary(models['first'], X_train, y_train, f"Decision Boundary - First Epoch ({dataset_name} - Run {run + 1})")
-        plt.savefig(f"{OUT_DIR}/decision_boundary_first_epoch_run{run + 1}_{dataset_name}.png")
+        plt.savefig(f"{OUT_DIR}/decision_boundary_run{run + 1}_first.png")
         plt.close()
 
         # Best Epoch (highest test accuracy)
         plot_decision_boundary(models['best'], X_train, y_train, f"Decision Boundary - Best Epoch ({dataset_name} - Run {run + 1})")
-        plt.savefig(f"{OUT_DIR}/decision_boundary_best_epoch_run{run + 1}_{dataset_name}.png")
+        plt.savefig(f"{OUT_DIR}/decision_boundary_run{run + 1}_best.png")
         plt.close()
 
         # Last Epoch
         plot_decision_boundary(models['last'], X_train, y_train, f"Decision Boundary - Last Epoch ({dataset_name} - Run {run + 1})")
-        plt.savefig(f"{OUT_DIR}/decision_boundary_last_epoch_run{run + 1}_{dataset_name}.png")
+        plt.savefig(f"{OUT_DIR}/decision_boundary_run{run + 1}_last.png")
         plt.close()
 
     # Convert results into a DataFrame for easy tabulation
@@ -159,21 +172,8 @@ def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_e
     # Print the results as a table
     print(df_results)
 
-    # Optionally, plot the accuracy over epochs for the last run (or any other)
-    plt.figure(figsize=(10, 6))
-    plt.plot(range(1, num_epochs + 1), accuracies_train_epoch, label='Train Accuracy', color='b')
-    plt.plot(range(1, num_epochs + 1), accuracies_test_epoch, label='Test Accuracy', color='r')
-    plt.title(f"Accuracy Over Epochs ({dataset_name})", fontsize=14)
-    plt.xlabel("Epoch", fontsize=12)
-    plt.ylabel("Accuracy", fontsize=12)
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(f"{OUT_DIR}/accuracy_over_epochs_{dataset_name}.png")
-    plt.close()
-
-
 # Function to run the MLP experiment
-def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name, num_epochs=10000, hidden_size=41):
+def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name, num_epochs=100000, hidden_size=49):
     scaler = StandardScaler()
 
     X_train_scaled = scaler.fit_transform(X_train)
@@ -187,8 +187,16 @@ def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name, num_epoch
 for filename in utils.files[2:]:
     data, labels = utils.load('./data/' + filename)
 
+    # first case (full train set)
+    train_size = 0.8
+    hidden_size = 49
+
+    # second case (reduced train set)
+    # train_size = 0.2
+    # hidden_size = 23
+
     X_train, X_test, y_train, y_test = train_test_split(
-        data, labels, test_size=0.2, train_size=0.8, random_state=42, stratify=labels
+        data, labels, test_size=0.2, train_size=train_size, random_state=42, stratify=labels
     )
 
-    run_mlp_experiment(X_train, y_train, X_test, y_test, filename)
+    run_mlp_experiment(X_train, y_train, X_test, y_test, filename, hidden_size=hidden_size)
