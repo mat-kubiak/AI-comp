@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import numpy as np
+import tqdm
 
 OUT_DIR = 'page8'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -62,8 +63,7 @@ def train_mlp(X_train, y_train, X_test, y_test, hidden_size, num_epochs):
 
     accuracies_train_epoch = []
     accuracies_test_epoch = []
-
-    for epoch in range(num_epochs):
+    for epoch in tqdm.tqdm(range(num_epochs)):
         model.train()
         optimizer.zero_grad()
         output = model(X_tensor)
@@ -92,7 +92,7 @@ def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_e
     results = []
 
     for run in range(num_runs):
-        model, accuracies_train_epoch, accuracies_test_epoch = train_mlp(X_train, y_train, X_test, y_test, hidden_size, num_epochs)
+        print(f'Run # {run+1}:')
 
         # Get accuracies for the first, best, and last epochs
         first_epoch_acc_train = accuracies_train_epoch[0]
@@ -156,7 +156,7 @@ def run_multiple_trainings(X_train, y_train, X_test, y_test, dataset_name, num_e
 
 
 # Function to run the MLP experiment
-def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name, num_epochs=10, hidden_size=41):
+def run_mlp_experiment(X_train, y_train, X_test, y_test, dataset_name, num_epochs=10000, hidden_size=41):
     scaler = StandardScaler()
 
     X_train_scaled = scaler.fit_transform(X_train)
