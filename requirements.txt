@@ -17,3 +17,7 @@ threadpoolctl==3.6.0
 torch~=2.6.0
 pyomo~=6.7.1
 pandas~=2.1.4
+torchvision~=0.21.0
+pytorch-lightning~=2.5.1.post0
+torchmetrics~=1.7.1
+tqdm~=4.65.0
