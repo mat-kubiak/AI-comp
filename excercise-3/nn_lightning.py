@@ -15,13 +15,23 @@ def main():
     logger = TensorBoardLogger('lightning_logs', name='MNIST')
 
     # Initialize Network
-    model = NN(INPUT_SIZE, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
+    model = NN(2, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
 
     # DataLoader setup
-    dm = MnistDataModule(data_dir=DATA_DIR, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
+    dm = MnistDataModule(
+        data_dir=DATA_DIR,
+        batch_size=BATCH_SIZE,
+        num_workers=NUM_WORKERS,
+        extraction_method='edges_sum'
+    )
 
     # Initialize trainer
-    trainer = pl.Trainer(min_epochs=1, max_epochs=EPOCHS, accelerator='cpu', callbacks=[MyPrintCallback()], logger=logger)
+    trainer = pl.Trainer(
+        min_epochs=1,
+        max_epochs=EPOCHS,
+        accelerator='cpu',
+        callbacks=[MyPrintCallback()], logger=logger
+    )
     trainer.fit(model, dm)
     trainer.test(model, dm)
 
