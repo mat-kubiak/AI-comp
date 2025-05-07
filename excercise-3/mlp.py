@@ -4,6 +4,9 @@ import torch.nn.functional as F
 
 import pytorch_lightning as pl
 import torchmetrics
+from torchmetrics.classification import MulticlassConfusionMatrix
+from helpers import plot_confusion_matrix
+
 
 class NN(pl.LightningModule):
     def __init__(self, input_size, num_classes, hidden_dim, learning_rate):
@@ -12,6 +15,7 @@ class NN(pl.LightningModule):
         self.fc2 = nn.Linear(hidden_dim, num_classes)
         self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
         self.f1_score = torchmetrics.F1Score(task="multiclass", num_classes=num_classes)
+        self.confmat = MulticlassConfusionMatrix(num_classes=num_classes)
         self.lr = learning_rate
 
     def forward(self, x):
@@ -24,8 +28,8 @@ class NN(pl.LightningModule):
         loss, scores, target = self._common_step(batch, batch_idx)
         acc = self.accuracy(scores, target)
         f1 = self.f1_score(scores, target)
+        self.confmat.update(scores, target)
         self.log_dict({"loss": loss, "acc": acc, "f1": f1}, prog_bar=True, on_step=False, on_epoch=True)
-
         return {"loss": loss, "acc": acc, "f1": f1}
 
     def validation_step(self, batch, batch_idx):
@@ -36,6 +40,7 @@ class NN(pl.LightningModule):
         loss, scores, target = self._common_step(batch, batch_idx)
         acc = self.accuracy(scores, target)
         f1 = self.f1_score(scores, target)
+        self.confmat.update(scores, target)
         self.log_dict({"loss": loss, "acc": acc, "f1": f1}, prog_bar=True, on_step=False, on_epoch=True)
 
         return {"loss": loss, "acc": acc, "f1": f1}
@@ -50,3 +55,12 @@ class NN(pl.LightningModule):
 
     def configure_optimizers(self):
         return optim.SGD(self.parameters(), lr=self.lr)
+
+    def on_validation_epoch_end(self):
+        # Only compute and plot confusion matrix after the last epoch
+        if self.current_epoch == self.trainer.max_epochs - 1:
+            cm = self.confmat.compute().cpu().numpy()
+            self.confmat.reset()  # reset for next epoch
+
+            class_names = [str(i) for i in range(10)]
+            plot_confusion_matrix(cm, class_names, title="Confusion Matrix (Final Validation)")
