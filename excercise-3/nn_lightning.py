@@ -18,14 +18,14 @@ def main():
     logger = TensorBoardLogger('lightning_logs', name='MNIST')
 
     # Initialize Network
-    model = NN(2, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
+    model = NN(4, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
 
     # DataLoader setup
     dm = MnistDataModule(
         data_dir=DATA_DIR,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
-        extraction_method='wbrh'
+        extraction_method='qwpc'
     )
 
     # Initialize trainer
