@@ -18,7 +18,7 @@ def main():
     logger = TensorBoardLogger('lightning_logs', name='MNIST')
 
     # Initialize Network
-    model = NN(4, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
+    model = NN(2, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
 
     # DataLoader setup
     dm = MnistDataModule(
@@ -38,7 +38,6 @@ def main():
     trainer.fit(model, dm)
     trainer.test(model, dm)
 
-    # This code is for 2 features only
     val_loader = dm.val_dataloader()
     data_iter = iter(val_loader)
     images, labels = next(data_iter)
@@ -66,11 +65,7 @@ def main():
     # Optionally plot Voronoi diagram if needed
     # plot_voronoi_diagram(X, y_pred, n_clusters=NUM_CLASSES, y_true=y)
 
-
 # Call the main function to execute
 if __name__ == "__main__":
     main()
 
-
-if __name__ == '__main__':
-    main()
