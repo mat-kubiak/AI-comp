@@ -33,28 +33,30 @@ def plot_decision_boundary(model, X, y, title, device):
     plt.savefig(f"images/boundary.png")
     plt.close()
 
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import Voronoi, voronoi_plot_2d
+
 def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_r=1.07):
     N = X.shape[0]
 
     x_max = np.max(X[:, 0])
     x_min = np.min(X[:, 0])
-
     y_max = np.max(X[:, 1])
     y_min = np.min(X[:, 1])
 
+    # Add bounding box to ensure all points are surrounded
     vertices = np.array([
         [x_min, y_min],
         [x_max, y_min],
         [x_min, y_max],
         [x_max, y_max],
     ])
-
     vor = Voronoi(np.concatenate((X, vertices * 50)))
 
     fig, ax = plt.subplots()
-    fig = voronoi_plot_2d(
-        vor,
-        ax=ax,
+    voronoi_plot_2d(
+        vor, ax=ax,
         show_points=False,
         point_size=10,
         line_alpha=0.1,
@@ -62,30 +64,45 @@ def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_
     )
 
     cmap = plt.colormaps['viridis']
-    colors = cmap(np.linspace(0, 1, n_clusters))
 
+    if y_true is not None:
+        p_colors = cmap(np.linspace(0, 1, len(np.unique(y_true))))
+        c_color = [p_colors[int(float(i))] for i in y_true]
+        labels_to_plot = y_true
+    else:
+        p_colors = cmap(np.linspace(0, 1, n_clusters))
+        c_color = [p_colors[int(float(i))] for i in y_pred]
+        labels_to_plot = y_pred
+
+    # Fill each Voronoi cell with color based on prediction
     for point_id, region_id in enumerate(vor.point_region):
         region = vor.regions[region_id]
         if not -1 in region and point_id < N:
             polygon = vor.vertices[region]
-            plt.fill(*zip(*polygon), color=colors[y_pred[point_id]], alpha=0.4)
+            plt.fill(*zip(*polygon), color=p_colors[y_pred[point_id]], alpha=0.4)
 
-    c_color = 'black'
-    if y_true is not None:
-        p_colors = cmap(np.linspace(0, 1, len(np.unique(y_true))))
-        c_color = [p_colors[int(float(i))] for i in y_true]
+    # Plot original points with class colors
+    plt.scatter(X[:, 0], X[:, 1], c=c_color, edgecolors='k', zorder=10)
 
-    plt.scatter(X[:, 0], X[:, 1], c=c_color, zorder=10)
+    # Create legend
+    labels = np.unique(labels_to_plot)
+    legend_elements = [
+        plt.Line2D([0], [0], marker='o', color='w',
+                   markerfacecolor=p_colors[int(cls)], markeredgecolor='k',
+                   markersize=6, label=f'Class {int(cls)}')
+        for cls in labels
+    ]
+    plt.legend(handles=legend_elements, title="Class Labels")
 
-    plt.xlim((x_min*pad_r, x_max*pad_r))
-    plt.ylim((y_min*pad_r, y_max*pad_r))
-
+    # Set plot limits
+    plt.xlim((x_min * pad_r, x_max * pad_r))
+    plt.ylim((y_min * pad_r, y_max * pad_r))
     fig.set_size_inches(8, 6)
-    if filename == None:
-        plt.savefig(f"voronoi_{'color' if y_true is not None else 'nocolor'}.png", dpi=200)
-    else:
-        plt.savefig(filename, dpi=200)
-    plt.savefig(f"images/voronoi.png")
+
+    # Save and close
+    if filename is None:
+        filename = "images/voronoi.png"
+    plt.savefig(filename, dpi=200)
     plt.close()
 
 
