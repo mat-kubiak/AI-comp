@@ -30,14 +30,14 @@ def plot_decision_boundary(model, X, y, title, device):
     plt.contourf(xx, yy, Z, alpha=0.3)
     plt.scatter(X[:, 0], X[:, 1], c=y, edgecolors='k')
     plt.title(title)
-    plt.savefig(f"images/boundary.png")
+    plt.savefig(f"images/{title}y.png")
     plt.close()
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
-def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_r=1.07):
+def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_r=1.07, title="Test"):
     N = X.shape[0]
 
     x_max = np.max(X[:, 0])
@@ -101,16 +101,15 @@ def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_
 
     # Save and close
     if filename is None:
-        filename = "images/voronoi.png"
+        filename = f"images/{title}.png"
     plt.savefig(filename, dpi=200)
     plt.close()
 
 
 def plot_confusion_matrix(cm, classes, title):
-    # Plot confusion matrix using Seaborn heatmap
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=classes, yticklabels=classes)
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title(title)
-    plt.savefig(f"images/conf_matrix.png")
+    plt.savefig(f"images/{title}.png")
     plt.close()

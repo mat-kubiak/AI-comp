@@ -18,14 +18,14 @@ def main():
     logger = TensorBoardLogger('lightning_logs', name='MNIST')
 
     # Initialize Network
-    model = NN(4, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
+    model = NN(2, NUM_CLASSES, HIDDEN_LAYERS, LEARNING_RATE).to(device)
 
     # DataLoader setup
     dm = MnistDataModule(
         data_dir=DATA_DIR,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
-        extraction_method='qwpc'
+        extraction_method='wbrh'
     )
 
     # Initialize trainer
@@ -38,14 +38,14 @@ def main():
     trainer.fit(model, dm)
     trainer.test(model, dm)
 
-    val_loader = dm.val_dataloader()
+    val_loader = dm.train_dataloader()
     data_iter = iter(val_loader)
     images, labels = next(data_iter)
     X = images.view(-1, 2).cpu().numpy()  # Assuming 2D features
     y = labels.cpu().numpy()
 
     # Plot decision boundary (optional visualization)
-    # plot_decision_boundary(model, X, y, title="Decision Boundary on MNIST (edges_sum)", device=device)
+    plot_decision_boundary(model, X, y, title="Decision Boundary on MNIST (Training)", device=device)
 
     # Make predictions
     model.eval()
@@ -63,7 +63,17 @@ def main():
     print(f"Completeness: {completeness}")
 
     # Optionally plot Voronoi diagram if needed
-    # plot_voronoi_diagram(X, y_pred, n_clusters=NUM_CLASSES, y_true=y)
+    plot_voronoi_diagram(X, y_pred, n_clusters=NUM_CLASSES, y_true=y, title="Traning")
+
+    test_loader = dm.test_dataloader()
+    data_iter = iter(test_loader)
+    images, labels = next(data_iter)
+    X = images.view(-1, 2).cpu().numpy()  # Assuming 2D features
+    y = labels.cpu().numpy()
+
+    # Plot decision boundary (optional visualization)
+    plot_decision_boundary(model, X, y, title="Decision Boundary on MNIST (Test)", device=device)
+
 
 # Call the main function to execute
 if __name__ == "__main__":

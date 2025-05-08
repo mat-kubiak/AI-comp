@@ -56,18 +56,18 @@ class NN(pl.LightningModule):
     def configure_optimizers(self):
         return optim.SGD(self.parameters(), lr=self.lr)
 
-    def on_train_end(self):
+    def on_train_epoch_end(self):
         if self.current_epoch == self.trainer.max_epochs - 1:
             cm = self.confmat.compute().cpu().numpy()
             self.confmat.reset()  # reset for next epoch
 
             class_names = [str(i) for i in range(10)]
-            plot_confusion_matrix(cm, class_names, title="Confusion Matrix")
+            plot_confusion_matrix(cm, class_names, title="Confusion Matrix Train")
 
-    # def on_test_epoch_end(self):
-    #     if self.current_epoch == self.trainer.max_epochs - 1:
-    #         cm = self.confmat.compute().cpu().numpy()
-    #         self.confmat.reset()  # reset for next epoch
-    #
-    #         class_names = [str(i) for i in range(10)]
-    #         plot_confusion_matrix(cm, class_names, title="Confusion Matrix (Final Validation)")
+    def on_test_epoch_end(self):
+        if self.current_epoch == self.trainer.max_epochs - 1:
+            cm = self.confmat.compute().cpu().numpy()
+            self.confmat.reset()  # reset for next epoch
+
+            class_names = [str(i) for i in range(10)]
+            plot_confusion_matrix(cm, class_names, title="Confusion Matrix Test")
