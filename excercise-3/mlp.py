@@ -64,10 +64,9 @@ class NN(pl.LightningModule):
             class_names = [str(i) for i in range(10)]
             plot_confusion_matrix(cm, class_names, title="Confusion Matrix Train")
 
-    def on_test_epoch_end(self):
-        if self.current_epoch == self.trainer.max_epochs - 1:
-            cm = self.confmat.compute().cpu().numpy()
-            self.confmat.reset()  # reset for next epoch
+    def on_test_epoch_end(self):        
+        cm = self.confmat.compute().cpu().numpy()
+        self.confmat.reset()  # reset for next epoch
 
-            class_names = [str(i) for i in range(10)]
-            plot_confusion_matrix(cm, class_names, title="Confusion Matrix Test")
+        class_names = [str(i) for i in range(10)]
+        plot_confusion_matrix(cm, class_names, title="Confusion Matrix Test")

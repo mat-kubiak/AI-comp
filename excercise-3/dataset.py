@@ -51,7 +51,6 @@ def white_black_ratio_in_halves(x):
 
     return torch.tensor([ratio_top, ratio_bottom], dtype=torch.float32)
 
-
 sobel_h = torch.tensor([[-1, -2, -1],
                         [ 0,  0,  0],
                         [ 1,  2,  1]], dtype=torch.float32).view(1,1,3,3)
@@ -59,6 +58,14 @@ sobel_h = torch.tensor([[-1, -2, -1],
 sobel_v = torch.tensor([[-1, 0, 1],
                         [-2, 0, 2],
                         [-1, 0, 1]], dtype=torch.float32).view(1,1,3,3)
+
+sobel_d1 = torch.tensor([[0, 1, 2],
+                        [-1, 0, 1],
+                        [-2, -1, 0]], dtype=torch.float32).view(1,1,3,3)
+
+sobel_d2 = torch.tensor([[2, 1, 0],
+                        [1, 0, -1],
+                        [0, -1, -2]], dtype=torch.float32).view(1,1,3,3)
 
 ext_methods = {
     'flatten': transforms.Compose([
@@ -72,11 +79,14 @@ ext_methods = {
             Fnn.conv2d(x.unsqueeze(0), sobel_v, padding=1).abs().sum()
         ]))
     ]),
-    'edges_mean': transforms.Compose([
+    'edges_all': transforms.Compose([
         transforms.ToTensor(),  # (1, 28, 28)
         transforms.Lambda(lambda x: torch.stack([
-            Fnn.conv2d(x.unsqueeze(0), sobel_h, padding=1).abs().mean(),
-            Fnn.conv2d(x.unsqueeze(0), sobel_v, padding=1).abs().mean()
+            Fnn.conv2d(x.unsqueeze(0), sobel_h, padding=1).abs().sum(),
+            Fnn.conv2d(x.unsqueeze(0), sobel_v, padding=1).abs().sum(),
+            Fnn.conv2d(x.unsqueeze(0), sobel_d1, padding=1).abs().sum(),
+            Fnn.conv2d(x.unsqueeze(0), sobel_d2, padding=1).abs().sum(),
+            x.mean()
         ]))
     ]),
     'wbrh': transforms.Compose([
@@ -116,4 +126,67 @@ class MnistDataModule(pl.LightningDataModule):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
 
     def test_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+
+
+from sklearn.datasets import load_iris, load_wine, load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+import torch
+from torch.utils.data import TensorDataset, DataLoader
+import pytorch_lightning as pl
+
+class SklearnDataModule(pl.LightningDataModule):
+    def __init__(self, dataset_name, batch_size, num_workers, test_size=0.2):
+        super().__init__()
+        self.dataset_name = dataset_name
+        self.batch_size = batch_size
+        self.test_size = test_size
+        self.num_workers = num_workers
+
+    def prepare_data(self):
+        if self.dataset_name == "Iris":
+            data = load_iris()
+            print('Loaded iris')
+        elif self.dataset_name == "Wine":
+            print('Loaded wine')
+            data = load_wine()
+        elif self.dataset_name == "Breast Cancer Wisconsin":
+            print('Loaded wisconsin')
+            data = load_breast_cancer()
+        else:
+            raise ValueError(f"Unknown dataset: {self.dataset_name}")
+
+        X = data['data']
+        y = data['target']
+
+        self.input_size = X.shape[1]
+        self.num_classes = len(set(y))
+
+        # Normalize the features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(
+            X_scaled, y, test_size=self.test_size, random_state=42, stratify=y
+        )
+
+    def setup(self, stage=None):
+        self.train_dataset = TensorDataset(
+            torch.tensor(self.X_train, dtype=torch.float32),
+            torch.tensor(self.y_train, dtype=torch.long)
+        )
+        self.val_dataset = TensorDataset(
+            torch.tensor(self.X_val, dtype=torch.float32),
+            torch.tensor(self.y_val, dtype=torch.long)
+        )
+
+    def train_dataloader(self):
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
+
+    def test_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+
+    def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)

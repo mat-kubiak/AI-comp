@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from pyomo.contrib.parmest.graphics import sns
 from scipy.spatial import Voronoi, voronoi_plot_2d
 import os
+from pathlib import Path
 
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
@@ -107,7 +108,9 @@ def plot_voronoi_diagram(X, y_pred, n_clusters, y_true=None, filename=None, pad_
 
 
 def plot_confusion_matrix(cm, classes, title):
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=classes, yticklabels=classes)
+    Path('images').mkdir(parents=True, exist_ok=True)
+
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=10, yticklabels=10)
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title(title)
