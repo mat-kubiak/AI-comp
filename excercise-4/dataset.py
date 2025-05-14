@@ -1,7 +1,9 @@
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import pytorch_lightning as pl
+
+import numpy as np
 
 mnist_transforms = {
     'default': transforms.ToTensor(),
@@ -10,6 +12,20 @@ mnist_transforms = {
             transforms.ToTensor()
         ])
 }
+
+def limit_dataset_samples(dataset, limit, num_classes=10):
+    class_indices = {i: [] for i in range(num_classes)}
+
+    for idx, (data, target) in enumerate(dataset):
+        class_indices[target].append(idx)
+
+    sampled_indices = []
+    samples_per_class = limit // num_classes
+
+    for cls, indices in class_indices.items():
+        sampled_indices += np.random.choice(indices, samples_per_class, replace=False).tolist()
+
+    return Subset(dataset, sampled_indices)
 
 class MnistDataModule(pl.LightningDataModule):
     def __init__(self, data_dir, batch_size, num_workers, transform='default', limit_samples=0):
@@ -21,18 +37,26 @@ class MnistDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.transform = mnist_transforms[transform]
+        self.limit_samples = limit_samples
+
+        self.num_classes = 10
+
+        if self.limit_samples > 0 and self.limit_samples % self.num_classes != 0:
+            raise ValueError(f"limit_samples ({self.limit_samples}) must be divisible by number of classes ({self.num_classes}).")
 
     def prepare_data(self):
         datasets.MNIST(root=self.data_dir, train=True, download=True)
         datasets.MNIST(root=self.data_dir, train=False, download=True)
 
     def setup(self, stage):
-        entire_dataset = datasets.MNIST(root=self.data_dir, train=True,  transform=self.transform,  download=False)
-        self.train_dataset, self.val_dataset = random_split(entire_dataset, [50000, 10000])
-        self.train_loader = datasets.MNIST(root=self.data_dir, train=True,  transform=self.transform,  download=False)
+        self.train_dataset = datasets.MNIST(root=self.data_dir, train=True,  transform=self.transform,  download=False)
+        self.val_dataset = datasets.MNIST(root=self.data_dir, train=False,  transform=transforms.ToTensor(),  download=False)
+
+        if self.limit_samples > 0:
+            self.train_dataset = limit_dataset_samples(self.train_dataset, self.limit_samples, self.num_classes)
 
     def train_dataloader(self):
-        return DataLoader(self.train_loader, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
@@ -42,7 +66,7 @@ class MnistDataModule(pl.LightningDataModule):
 
 imagenette_transforms = {
     'default': transforms.Compose([
-            transforms.Resize((160, 160)),  # Resize to 160x160
+            transforms.Resize((160, 160)),
             transforms.ToTensor(),
         ]),
     'MK_random_crop': transforms.Compose([
@@ -53,7 +77,7 @@ imagenette_transforms = {
 }
 
 class ImageNetteDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir, batch_size, num_workers, transform='default'):
+    def __init__(self, data_dir, batch_size, num_workers, transform='default', limit_samples=0):
         super().__init__()
         self.train_loader = None
         self.val_dataset = None
@@ -62,13 +86,25 @@ class ImageNetteDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.transform = imagenette_transforms[transform]
+        self.limit_samples = limit_samples
+
+        self.num_classes = 10
+
+        if self.limit_samples > 0 and self.limit_samples % self.num_classes != 0:
+            raise ValueError(f"limit_samples ({self.limit_samples}) must be divisible by number of classes ({self.num_classes}).")
 
     def prepare_data(self):
-        datasets.Imagenette(root=self.data_dir, size="160px", download=True)
+        datasets.Imagenette(root=self.data_dir, size="320px", download=True)
 
     def setup(self, stage=None):
-        entire_dataset = datasets.Imagenette(root=self.data_dir, size="160px", transform=self.transform, download=False)
+        entire_dataset = datasets.Imagenette(root=self.data_dir, size="320px", transform=None, download=False)
         self.train_dataset, self.val_dataset = random_split(entire_dataset, [8000, 1469])
+
+        self.train_dataset.dataset.transform = self.transform
+        self.val_dataset.dataset.transform = imagenette_transforms['default']
+
+        if self.limit_samples > 0:
+            self.train_dataset = limit_dataset_samples(self.train_dataset, self.limit_samples, self.num_classes)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
