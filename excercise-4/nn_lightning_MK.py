@@ -48,6 +48,8 @@ def prepare_imagenette():
         num_workers=NUM_WORKERS,
     )
 
+    return model, dm
+
 def main():
     logger = TensorBoardLogger('lightning_logs', name='MNIST')
 
