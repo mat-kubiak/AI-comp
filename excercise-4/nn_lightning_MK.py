@@ -19,8 +19,11 @@ from pathlib import Path
 Path('models').mkdir(parents=True, exist_ok=True)
 
 # choose the dataset & mode
-DATASET = 'mnist' # ['mnist', 'imagenette']
+DATASET = 'imagenette' # ['mnist', 'imagenette']
 MODE = 'regular' # ['simple', 'regular']
+
+SAMPLE_LIMIT = 0
+TRANSFORM = 'default'
 
 def prepare_mnist():
     if MODE == 'simple':
@@ -32,6 +35,8 @@ def prepare_mnist():
         data_dir=DATA_DIR,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
+        transform=TRANSFORM,
+        limit_samples=SAMPLE_LIMIT,
     )
 
     return model, dm
@@ -46,12 +51,14 @@ def prepare_imagenette():
         data_dir=DATA_DIR,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
+        transform=TRANSFORM,
+        limit_samples=SAMPLE_LIMIT,
     )
 
     return model, dm
 
 def main():
-    logger = TensorBoardLogger('lightning_logs', name='MNIST')
+    logger = TensorBoardLogger('lightning_logs', name=f'{DATASET.capitalize()}_{MODE}_{SAMPLE_LIMIT}_{TRANSFORM}')
 
     if DATASET == 'mnist':
         model, dm = prepare_mnist()
@@ -60,7 +67,7 @@ def main():
 
     trainer = pl.Trainer(
         min_epochs=1,
-        max_epochs=1,
+        max_epochs=EPOCHS,
         accelerator='cpu',
         logger=logger
     )
