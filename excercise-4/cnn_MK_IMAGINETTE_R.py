@@ -19,9 +19,9 @@ class CNN(pl.LightningModule):
 
         # Fully connected layers (adjusted based on feature map size)
         # After three poolings (for 160x160 input), the output size is 256 * 10 * 10
-        self.fc1 = nn.Linear(256, 512)
-        self.fc2 = nn.Linear(512, 128)
-        self.fc3 = nn.Linear(128, num_classes)
+        units = 512
+        self.fc1 = nn.Linear((32 + 64 + 128 + 256)*2, units)
+        self.fc2 = nn.Linear(units, num_classes)
 
         self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
         self.f1_score = torchmetrics.F1Score(task="multiclass", num_classes=num_classes)
@@ -30,22 +30,29 @@ class CNN(pl.LightningModule):
         self.lr = learning_rate
 
     def forward(self, x):
+        r = []
         x = F.relu(self.conv1(x))
+        r.append(F.adaptive_avg_pool2d(x, (1,1)))
+        r.append(F.adaptive_max_pool2d(x, (1,1)))
         x = self.pool(x)
         x = F.relu(self.conv2(x))
+        r.append(F.adaptive_avg_pool2d(x, (1,1)))
+        r.append(F.adaptive_max_pool2d(x, (1,1)))
         x = self.pool(x)
         x = F.relu(self.conv3(x))
+        r.append(F.adaptive_avg_pool2d(x, (1,1)))
+        r.append(F.adaptive_max_pool2d(x, (1,1)))
         x = self.pool(x)
         x = F.relu(self.conv4(x))
-        x = self.pool(x)
+        r.append(F.adaptive_avg_pool2d(x, (1,1)))
+        r.append(F.adaptive_max_pool2d(x, (1,1)))
 
-        # global pool + flatten
-        x = F.adaptive_avg_pool2d(x, (1, 1))  # Output shape: [batch_size, 256, 1, 1]
+        # concatenate + flatten
+        x = torch.cat(r, dim=1)
         x = x.view(x.size(0), -1)
 
         x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = self.fc2(x)
         return x
 
     def training_step(self, batch, batch_idx):
