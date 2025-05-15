@@ -1,5 +1,6 @@
+import numpy as np
 import torch
-from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 import pytorch_lightning as pl
 from config import LEARNING_RATE, INPUT_SIZE, NUM_CLASSES, HIDDEN_LAYERS, BATCH_SIZE, EPOCHS, DATA_DIR, NUM_WORKERS
 from dataset import MnistDataModule, ImageNetteDataModule
@@ -13,13 +14,39 @@ import torch.nn.functional as F
 # Set Device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+def evaluate_model_multiple_runs(datamodule, logger, runs=5, max_epochs=5):
+    accuracies = []
+    best_acc = -1.0
+
+    for run in range(runs):
+        print(f"\n== Run {run+1}/{runs} ==")
+        model = CNN2_JJ(1, NUM_CLASSES, LEARNING_RATE).to(device)
+        trainer = pl.Trainer(max_epochs=max_epochs, logger=logger, enable_progress_bar=False)
+
+        trainer.fit(model, datamodule)
+        test_result = trainer.test(model, datamodule, verbose=False)
+        test_acc = test_result[0]["test_acc"]
+
+        accuracies.append(test_acc)
+
+        if test_acc > best_acc:
+            best_acc = test_acc  # Track best accuracy
+
+    mean_acc = np.mean(accuracies)
+    std_acc = np.std(accuracies)
+
+    print(f"\n🏆 Best Accuracy: {best_acc:.4f}")
+    print(f"✅ Mean Accuracy: {mean_acc:.4f}")
+    print(f"📉 Std Deviation: {std_acc:.4f}")
+
+    return best_acc, mean_acc, std_acc
 
 def main():
     # Initialize Logger
     logger = TensorBoardLogger('lightning_logs', name='MNIST')
 
     # Initialize Network
-    model = CNN3_JJ(3, NUM_CLASSES, LEARNING_RATE).to(device)
+    # model = CNN2_JJ(1, NUM_CLASSES, LEARNING_RATE).to(device)
 
     # DataLoader setup
     dm = MnistDataModule(
@@ -32,17 +59,22 @@ def main():
         data_dir=DATA_DIR,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
+        limit_samples=100
     )
 
+    evaluate_model_multiple_runs(dm , logger, 10, 1)
+
     # Initialize trainer
-    trainer = pl.Trainer(
-        min_epochs=1,
-        max_epochs=EPOCHS,
-        accelerator='cpu',
-        logger=logger
-    )
-    trainer.fit(model, im)
-    trainer.test(model, im)
+    # trainer = pl.Trainer(
+    #     min_epochs=1,
+    #     max_epochs=EPOCHS,
+    #     accelerator='gpu',
+    #     logger=logger
+    # )
+    # trainer.fit(model, im)
+    # trainer.test(model, im)
+    #
+
 
     # Plotting Decision Boundary
     # model.eval()
