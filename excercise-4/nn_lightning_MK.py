@@ -75,7 +75,7 @@ def main():
     trainer.test(model, dm)
 
     # save model
-    torch.save(model, f'models/{DATASET.capitalize()}_{MODE}.pth')
+    torch.save(model, f'models/{DATASET.capitalize()}_{MODE}_{SAMPLE_LIMIT}_{TRANSFORM}.pth')
 
     if MODE == 'regular':
         exit()
@@ -103,10 +103,6 @@ def main():
         y = labels.cpu().numpy()
     
         plot_decision_boundary(model.classifier, features_2d, y, title="Decision Boundary Test", device=device)
-
-
-
-
 
 if __name__ == "__main__":
     main()
