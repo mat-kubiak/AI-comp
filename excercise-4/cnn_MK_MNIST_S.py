@@ -5,6 +5,17 @@ import pytorch_lightning as pl
 import torchmetrics
 from helpers import plot_confusion_matrix
 
+class Classifier(nn.Module):
+    def __init__(self, input_dim=2, units=64, num_classes=10):
+        super(Classifier, self).__init__()
+        self.fc1 = nn.Linear(input_dim, units)
+        self.fc2 = nn.Linear(units, num_classes)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
 class CNN(pl.LightningModule):
     def __init__(self, input_channels, num_classes, learning_rate=1e-3):
         super(CNN, self).__init__()
@@ -16,7 +27,7 @@ class CNN(pl.LightningModule):
 
         self.conv_reduce = nn.Conv2d(16, 2, kernel_size=1, stride=1, padding=1)
 
-        self.classifier = nn.Linear(2, num_classes)
+        self.classifier = Classifier(2, 512, 10)
 
         self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
         self.f1_score = torchmetrics.F1Score(task="multiclass", num_classes=num_classes)
@@ -40,8 +51,7 @@ class CNN(pl.LightningModule):
     def forward(self, x):
         features_2d = self.forward_encoder(x)
 
-        logits = self.classifier(features_2d)
-        return logits
+        return self.classifier.forward(features_2d)
 
     def training_step(self, batch, batch_idx):
         data, target = batch
