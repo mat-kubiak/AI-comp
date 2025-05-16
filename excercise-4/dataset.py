@@ -1,6 +1,9 @@
 import os
 import random
 
+import torch
+from matplotlib import pyplot as plt
+from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader, random_split, Subset
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
@@ -14,7 +17,7 @@ mnist_transforms = {
             transforms.RandomRotation(degrees=5),
             transforms.ToTensor()
         ]),
-    'YourName_affine': transforms.Compose([
+    'JJ_affine': transforms.Compose([
         transforms.RandomAffine(
             degrees=0,
             translate=(0.1, 0.1),
@@ -142,7 +145,7 @@ class ImageNetteDataModule(pl.LightningDataModule):
         if self.limit_samples > 0:
             self.train_dataset = limit_dataset_samples(self.train_dataset, self.limit_samples, self.num_classes)
 
-        save_random_samples(self.train_dataset, "images_examples", 3)
+        # save_random_samples(self.train_dataset, "images_examples", 3)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
@@ -154,3 +157,55 @@ class ImageNetteDataModule(pl.LightningDataModule):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
 
 
+
+def plot_mnist_augmentation_distribution(data_dir="./dataset/MNIST", transform_name='MK_random_rotate', augment_times=10):
+    # Użyj transformacji augmentującej
+    transform_aug = mnist_transforms[transform_name]
+    transform_orig = mnist_transforms['default']
+
+    # Załaduj 100 przykładów (po 10 na klasę)
+    data_module_orig = MnistDataModule(data_dir=data_dir, batch_size=100, num_workers=0, transform='default', limit_samples=100)
+    data_module_orig.prepare_data()
+    data_module_orig.setup(stage=None)
+
+    original_dataset = data_module_orig.train_dataset
+
+    # Wyodrębnij dane i etykiety oryginalne
+    original_images = []
+    original_labels = []
+
+    for img, label in original_dataset:
+        original_images.append(img.view(-1))
+        original_labels.append(label)
+
+    # Teraz augmentuj każdy z 100 przykładów 10 razy
+    augmented_images = []
+    augmented_labels = []
+
+    for img, label in original_dataset:
+        pil_img = transforms.ToPILImage()(img)  # musimy zamienić na PIL, bo augmentacje używają PIL
+        for _ in range(augment_times):
+            aug_img = transform_aug(pil_img)
+            augmented_images.append(aug_img.view(-1))
+            augmented_labels.append(label)
+
+    # PCA – redukcja do 2D
+    pca = PCA(n_components=2)
+    original_2d = pca.fit_transform(torch.stack(original_images))
+    augmented_2d = pca.transform(torch.stack(augmented_images))
+
+    # Rysowanie wykresów
+    plt.figure(figsize=(12, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.title("Oryginalne dane (100 próbek)")
+    scatter = plt.scatter(original_2d[:, 0], original_2d[:, 1], c=original_labels, cmap="tab10", alpha=0.8)
+    plt.legend(*scatter.legend_elements(), title="Klasy", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    plt.subplot(1, 2, 2)
+    plt.title(f"Augmentowane dane ({100 * augment_times} próbek)")
+    scatter = plt.scatter(augmented_2d[:, 0], augmented_2d[:, 1], c=augmented_labels, cmap="tab10", alpha=0.5)
+    plt.legend(*scatter.legend_elements(), title="Klasy", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    plt.tight_layout()
+    plt.show()

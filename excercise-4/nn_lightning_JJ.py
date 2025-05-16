@@ -3,7 +3,7 @@ import torch
 from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 import pytorch_lightning as pl
 from config import LEARNING_RATE, INPUT_SIZE, NUM_CLASSES, HIDDEN_LAYERS, BATCH_SIZE, EPOCHS, DATA_DIR, NUM_WORKERS
-from dataset import MnistDataModule, ImageNetteDataModule
+from dataset import MnistDataModule, ImageNetteDataModule, plot_mnist_augmentation_distribution
 from cnn_JJ_1_MNIST import CNN as CNN1_JJ
 from cnn_JJ_2_MNIST import SimpleCNN as CNN2_JJ
 from cnn_JJ_2_IMAGINETTE import SimpleCNN as CNN4_JJ
@@ -14,14 +14,14 @@ import torch.nn.functional as F
 # Set Device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def evaluate_model_multiple_runs(datamodule, logger, runs=5, max_epochs=5):
+def evaluate_model_multiple_runs(datamodule, logger, runs, max_epochs):
     accuracies = []
     best_acc = -1.0
 
     for run in range(runs):
         print(f"\n== Run {run+1}/{runs} ==")
-        model = CNN2_JJ(1, NUM_CLASSES, LEARNING_RATE).to(device)
-        trainer = pl.Trainer(max_epochs=max_epochs, logger=logger, enable_progress_bar=False)
+        model = CNN1_JJ(1, NUM_CLASSES, LEARNING_RATE).to(device)
+        trainer = pl.Trainer(max_epochs=max_epochs, logger=logger, enable_progress_bar=False, accelerator='auto')
 
         trainer.fit(model, datamodule)
         test_result = trainer.test(model, datamodule, verbose=False)
@@ -53,16 +53,19 @@ def main():
         data_dir=DATA_DIR,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
+        transform="MK_random_rotate",
     )
 
-    im = ImageNetteDataModule(
-        data_dir=DATA_DIR,
-        batch_size=BATCH_SIZE,
-        num_workers=NUM_WORKERS,
-        limit_samples=100
-    )
+    plot_mnist_augmentation_distribution()
 
-    evaluate_model_multiple_runs(dm , logger, 10, 1)
+    # im = ImageNetteDataModule(
+    #     data_dir=DATA_D   IR,
+    #     batch_size=BATCH_SIZE,
+    #     num_workers=NUM_WORKERS,
+    #     limit_samples=100
+    # )
+
+    evaluate_model_multiple_runs(dm , logger, 8, 2)
 
     # Initialize trainer
     # trainer = pl.Trainer(
