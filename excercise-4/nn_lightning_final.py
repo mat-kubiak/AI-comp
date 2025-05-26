@@ -85,6 +85,11 @@ def main():
 
                         model = prepare_model(dataset, mode)
 
+                        logger = TensorBoardLogger(
+                            save_dir='lightning_logs',
+                            name=f'{dataset}_{transform}_{limit}_{mode}'
+                        )
+
                         checkpoint_callback = ModelCheckpoint(
                             monitor="val_acc",
                             mode="max",
@@ -97,7 +102,8 @@ def main():
                             min_epochs=1,
                             max_epochs=epochs,
                             accelerator=accelerator,
-                            callbacks=[checkpoint_callback]
+                            callbacks=[checkpoint_callback],
+                            logger=logger
                         )
 
                         trainer.fit(model, dm)
