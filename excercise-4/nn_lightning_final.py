@@ -15,7 +15,11 @@ from cnn_JJ_1_MNIST import CNN as CNN_MNIST_REGULAR
 from cnn_JJ_2_IMAGINETTE import SimpleCNN as CNN_IMAG_SIMPLE
 from cnn_JJ_1_IMAGINETTE import CNN as CNN_IMAG_REGULAR
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+accelerator = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = torch.device(accelerator)
+
+if accelerator == 'cuda': # use tensor cores
+    torch.set_float32_matmul_precision('medium')
 
 def prepare_dataset(dataset, transform, sample_limit):
     kwargs = {
@@ -50,7 +54,8 @@ def main():
     # how many experiments (rows) to skip, useful for resuming
     skip_n = 0
 
-    epochs = 3
+    epochs = 10
+    tries = 10
     dataset = 'imagenette'
     transforms = ['default', 'JJ_color_jitter', 'MK_random_crop']
     modes = ['regular', 'simple']
@@ -73,16 +78,16 @@ def main():
                         continue
 
                     accuracies = []
-                    for i_try in range(3):
+                    for i_try in range(tries):
 
-                        print(f'\n### {dataset} {transform} {limit} {mode} TRY ({i_try+1}/3) ###\n')
+                        print(f'\n### {dataset} {transform} {limit} {mode} TRY ({i_try+1}/{tries}) ###\n')
 
                         model = prepare_model(dataset, mode)
 
                         trainer = pl.Trainer(
                             min_epochs=1,
                             max_epochs=epochs,
-                            accelerator='cpu',
+                            accelerator=accelerator,
                             check_val_every_n_epoch=epochs+1
                         )
                         trainer.fit(model, dm)
