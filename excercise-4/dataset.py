@@ -134,13 +134,9 @@ class ImageNetteDataModule(pl.LightningDataModule):
     def prepare_data(self):
         datasets.Imagenette(root=self.data_dir, size="320px", download=True)
 
-
     def setup(self, stage=None):
-        entire_dataset = datasets.Imagenette(root=self.data_dir, size="320px", transform=None, download=False)
-        self.train_dataset, self.val_dataset = random_split(entire_dataset, [8000, 1469])
-
-        self.train_dataset.dataset.transform = self.transform
-        self.val_dataset.dataset.transform = imagenette_transforms['default']
+        self.train_dataset = datasets.Imagenette(root=self.data_dir, split='train', size="320px", transform=self.transform, download=False)
+        self.val_dataset = datasets.Imagenette(root=self.data_dir, split='val', size="320px", transform=imagenette_transforms['default'], download=False)
 
         if self.limit_samples > 0:
             self.train_dataset = limit_dataset_samples(self.train_dataset, self.limit_samples, self.num_classes)
