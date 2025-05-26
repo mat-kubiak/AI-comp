@@ -59,8 +59,8 @@ def main():
     tries = 10
     dataset = 'imagenette'
     transforms = ['default', 'JJ_color_jitter', 'MK_random_crop']
-    modes = ['regular', 'simple']
     limits = [100, 200, 1000, 0]
+    modes = ['regular', 'simple']
 
     if skip_n == 0:
         with open('output.csv', 'a') as file:
@@ -102,6 +102,8 @@ def main():
                             min_epochs=1,
                             max_epochs=epochs,
                             accelerator=accelerator,
+                            num_sanity_val_steps=0,
+                            log_every_n_steps=1,
                             callbacks=[checkpoint_callback],
                             logger=logger
                         )
@@ -109,6 +111,7 @@ def main():
                         trainer.fit(model, dm)
                         
                         best_model_path = checkpoint_callback.best_model_path
+                        print(f'\n### loading best model: {best_model_path}\n')
                         model.load_state_dict(torch.load(best_model_path)["state_dict"])
                         
                         stats = trainer.test(model, dm)[0]
