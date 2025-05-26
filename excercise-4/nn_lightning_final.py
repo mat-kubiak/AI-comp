@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 import pytorch_lightning as pl
 
 from config import LEARNING_RATE, INPUT_SIZE, NUM_CLASSES, HIDDEN_LAYERS, BATCH_SIZE, EPOCHS, DATA_DIR, NUM_WORKERS
@@ -84,13 +85,26 @@ def main():
 
                         model = prepare_model(dataset, mode)
 
+                        checkpoint_callback = ModelCheckpoint(
+                            monitor="val_acc",
+                            mode="max",
+                            save_top_k=1,
+                            save_last=False,
+                            filename="best-{epoch}-{val_acc:.4f}"
+                        )
+
                         trainer = pl.Trainer(
                             min_epochs=1,
                             max_epochs=epochs,
                             accelerator=accelerator,
-                            check_val_every_n_epoch=epochs+1
+                            callbacks=[checkpoint_callback]
                         )
+
                         trainer.fit(model, dm)
+                        
+                        best_model_path = checkpoint_callback.best_model_path
+                        model.load_state_dict(torch.load(best_model_path)["state_dict"])
+                        
                         stats = trainer.test(model, dm)[0]
                         acc = stats['test_acc']
                         accuracies.append(acc)
