@@ -10,8 +10,8 @@ from dataset import MnistDataModule, SklearnDataModule
 from mlp import NN
 from helpers import plot_decision_boundary, plot_voronoi_diagram
 
-# Set Device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+accelerator = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = torch.device(accelerator)
 
 def choose_dataset():
     print("Choose a dataset:")
@@ -57,7 +57,7 @@ def main():
     trainer = pl.Trainer(
         min_epochs=1,
         max_epochs=EPOCHS,
-        accelerator='cpu',
+        accelerator=accelerator,
         callbacks=[checkpoint_callback],
         logger=logger
     )
