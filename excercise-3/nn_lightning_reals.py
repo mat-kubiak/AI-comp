@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 from sklearn.metrics import adjusted_rand_score, homogeneity_score, completeness_score, silhouette_score, \
     pairwise_distances
 
+from pytorch_lightning.callbacks import ModelCheckpoint
 from config import LEARNING_RATE, INPUT_SIZE, NUM_CLASSES, HIDDEN_LAYERS, BATCH_SIZE, EPOCHS, DATA_DIR, NUM_WORKERS
 from dataset import MnistDataModule, SklearnDataModule
 from mlp import NN
@@ -44,14 +45,26 @@ def main():
     # Initialize Network
     model = NN(dm.input_size, dm.num_classes, HIDDEN_LAYERS, LEARNING_RATE).to(device)
 
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val_loss",
+        dirpath="./checkpoints/",
+        filename=f"{dataset_name.replace(" ", "_").lower()}_best",
+        save_top_k=1,
+        mode="min",
+    )
+
     # Initialize trainer
     trainer = pl.Trainer(
         min_epochs=1,
         max_epochs=EPOCHS,
         accelerator='cpu',
+        callbacks=[checkpoint_callback],
         logger=logger
     )
     trainer.fit(model, dm)
+
+    # load best model again for testing
+    model = NN.load_from_checkpoint(checkpoint_callback.best_model_path).to(device)
     trainer.test(model, dm)
 
     val_loader = dm.train_dataloader()
