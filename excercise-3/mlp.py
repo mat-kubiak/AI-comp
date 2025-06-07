@@ -11,6 +11,8 @@ from helpers import plot_confusion_matrix
 class NN(pl.LightningModule):
     def __init__(self, input_size, num_classes, hidden_dim, learning_rate):
         super(NN, self).__init__()
+        self.save_hyperparameters()
+
         self.fc1 = nn.Linear(input_size, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, num_classes)
         self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
@@ -34,7 +36,16 @@ class NN(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         loss, scores, target = self._common_step(batch, batch_idx)
-        return loss
+        acc = self.accuracy(scores, target)
+
+        self.log_dict(
+            {"val_loss": loss, "val_acc": acc},
+            prog_bar=True,
+            on_step=False,
+            on_epoch=True
+        )
+
+        return {"val_loss": loss, "val_acc": acc}
 
     def test_step(self, batch, batch_idx):
         loss, scores, target = self._common_step(batch, batch_idx)
