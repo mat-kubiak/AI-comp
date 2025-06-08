@@ -1,22 +1,46 @@
 import torch
 from mlp import NN
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from sklearn.preprocessing import StandardScaler
 from captum.attr import IntegratedGradients
 import numpy as np
 
+def choose_dataset():
+    print("Choose a dataset:")
+    print("1 - Iris")
+    print("2 - Wine")
+    print("3 - Breast Cancer Wisconsin")
+    choice = input("Enter number (1/2/3): ")
+
+    if choice == '1':
+        model_name = 'iris_best_80.ckpt'
+        dataset = load_iris()
+    elif choice == '2':
+        model_name = 'wine_best_97.ckpt'
+        dataset = load_wine()
+    elif choice == '3':
+        model_name = 'bcw_best_95.ckpt'
+        dataset = load_breast_cancer()
+    else:
+        print("Invalid choice. Defaulting to Iris.")
+        model_name = 'iris_best_80.ckpt'
+        dataset = load_iris()
+
+    return model_name, dataset
+
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    model_name, dataset = choose_dataset()
+
     # Load model
-    model = NN.load_from_checkpoint('checkpoints/iris_best_80.ckpt')
+    model = NN.load_from_checkpoint(f'checkpoints/{model_name}')
     model.to(device)
     model.eval()
 
-    # Load iris data
-    iris = load_iris()
-    X = iris.data
-    y = iris.target
+    # Unpack data
+    X = dataset.data
+    y = dataset.target
 
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
