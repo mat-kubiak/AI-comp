@@ -15,10 +15,16 @@ class NN(pl.LightningModule):
 
         self.fc1 = nn.Linear(input_size, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, num_classes)
-        self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
-        self.f1_score = torchmetrics.F1Score(task="multiclass", num_classes=num_classes)
+
         self.confmat = MulticlassConfusionMatrix(num_classes=num_classes)
         self.lr = learning_rate
+
+        self.train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
+        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
+        self.test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
+
+        self.train_f1 = torchmetrics.F1Score(task="multiclass", num_classes=num_classes, average="macro")
+        self.test_f1 = torchmetrics.F1Score(task="multiclass", num_classes=num_classes, average="macro")
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -28,15 +34,15 @@ class NN(pl.LightningModule):
     # Train Network (Pytorch Lightning)
     def training_step(self, batch, batch_idx):
         loss, scores, target = self._common_step(batch, batch_idx)
-        acc = self.accuracy(scores, target)
-        f1 = self.f1_score(scores, target)
+        acc = self.train_acc(scores, target)
+        f1 = self.train_f1(scores, target)
         self.confmat.update(scores, target)
         self.log_dict({"loss": loss, "acc": acc, "f1": f1}, prog_bar=True, on_step=False, on_epoch=True)
         return {"loss": loss, "acc": acc, "f1": f1}
 
     def validation_step(self, batch, batch_idx):
         loss, scores, target = self._common_step(batch, batch_idx)
-        acc = self.accuracy(scores, target)
+        acc = self.val_acc(scores, target)
 
         self.log_dict(
             {"val_loss": loss, "val_acc": acc},
@@ -49,8 +55,8 @@ class NN(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         loss, scores, target = self._common_step(batch, batch_idx)
-        acc = self.accuracy(scores, target)
-        f1 = self.f1_score(scores, target)
+        acc = self.test_acc(scores, target)
+        f1 = self.test_f1(scores, target)
         self.confmat.update(scores, target)
         self.log_dict({"loss": loss, "acc": acc, "f1": f1}, prog_bar=True, on_step=False, on_epoch=True)
 
