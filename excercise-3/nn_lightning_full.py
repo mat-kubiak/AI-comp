@@ -38,26 +38,6 @@ def main():
     trainer.fit(model, dm)
     trainer.test(model, dm)
 
-    val_loader = dm.train_dataloader()
-    data_iter = iter(val_loader)
-    images, labels = next(data_iter)
-    y = labels.cpu().numpy()
-
-    # Make predictions
-    model.eval()
-    with torch.no_grad():
-        y_logits = model(images.to(device))
-        y_pred = y_logits.argmax(dim=1).cpu().numpy()
-
-    ari = adjusted_rand_score(y, y_pred)
-    homogeneity = homogeneity_score(y, y_pred)
-    completeness = completeness_score(y, y_pred)
-
-    # Print the scores
-    print(f"Adjusted Rand Index (ARI): {ari}")
-    print(f"Homogeneity: {homogeneity}")
-    print(f"Completeness: {completeness}")
-
 # Call the main function to execute
 if __name__ == "__main__":
     main()

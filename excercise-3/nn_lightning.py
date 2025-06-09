@@ -53,15 +53,6 @@ def main():
         y_logits = model(images.to(device))
         y_pred = y_logits.argmax(dim=1).cpu().numpy()
 
-    ari = adjusted_rand_score(y, y_pred)
-    homogeneity = homogeneity_score(y, y_pred)
-    completeness = completeness_score(y, y_pred)
-
-    # Print the scores
-    print(f"Adjusted Rand Index (ARI): {ari}")
-    print(f"Homogeneity: {homogeneity}")
-    print(f"Completeness: {completeness}")
-
     # Optionally plot Voronoi diagram if needed
     plot_voronoi_diagram(X, y_pred, n_clusters=NUM_CLASSES, y_true=y, title="Traning")
 
