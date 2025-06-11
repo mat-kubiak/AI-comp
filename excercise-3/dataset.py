@@ -115,12 +115,11 @@ class MnistDataModule(pl.LightningDataModule):
         datasets.MNIST(root=self.data_dir, train=False, download=True)
 
     def setup(self, stage):
-        entire_dataset = datasets.MNIST(root=self.data_dir, train=True, transform=self.extraction_method, download=False)
-        self.train_dataset, self.val_dataset = random_split(entire_dataset, [50000, 10000])
-        self.train_loader = datasets.MNIST(root=self.data_dir, train=True, transform=self.extraction_method, download=False)
+        self.train_dataset = datasets.MNIST(root=self.data_dir, train=True, transform=self.extraction_method, download=False)
+        self.val_dataset = datasets.MNIST(root=self.data_dir, train=False, transform=self.extraction_method, download=False)
 
     def train_dataloader(self):
-        return DataLoader(self.train_loader, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
