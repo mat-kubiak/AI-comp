@@ -2,9 +2,11 @@ import torch
 from mlp import NN
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from sklearn.preprocessing import StandardScaler
-from captum.attr import IntegratedGradients
 import numpy as np
-from lime.lime_tabular import LimeTabularExplainer
+
+from captum.attr import IntegratedGradients
+from captum.attr import Lime
+from captum._utils.models.linear_model import SkLearnLinearRegression, SkLearnLasso
 
 def choose_dataset():
     print("Choose a dataset:")
@@ -63,32 +65,25 @@ def main():
     print("Ground truth:", labels.cpu().numpy())
 
     # Captum Integrated Gradients
+    print('\n### Integrated Gradents ###############\n')
     ig = IntegratedGradients(model)
     attributions, delta = ig.attribute(samples, target=labels, return_convergence_delta=True)
     print("Attributions:", attributions)
 
     # LIME
-    def predict_fn(input_np):
-        input_tensor = torch.tensor(input_np, dtype=torch.float32).to(device)
-        with torch.no_grad():
-            logits = model(input_tensor)
-            probs = torch.nn.functional.softmax(logits, dim=1)
-        return probs.cpu().numpy()
+    print('\n### LIME ##############################\n')
+    lime = Lime(
+        forward_func=model,
+        interpretable_model=SkLearnLinearRegression(),  # Surrogate model
+        similarity_func=None  # Use default (exponential kernel)
+    )
 
-    explainer = LimeTabularExplainer(X, 
-                                     feature_names=dataset.feature_names,
-                                     class_names=dataset.target_names,
-                                     discretize_continuous=True,
-                                     mode='classification')
+    for i in range(samples.shape[0]):
+        sample = samples[i].unsqueeze(0)  # shape [1, features]
+        label = labels[i].item()
+        attributions = lime.attribute(sample, target=label, n_samples=50)
 
-    print("\nLIME Explanations (first 3 samples):")
-    for i in range(min(3, num_samples)):
-        explanation = explainer.explain_instance(X[random_indices[i]],
-                                                 predict_fn,
-                                                 num_features=5)
-        print(f"\nSample index: {random_indices[i]}")
-        # explanation.show_in_notebook(show_table=True)  # works in Jupyter
-        print(explanation.as_list())
+        print(f"y_true: {label}, y_pred: {preds[i].item()},\nsample: {sample},\nattr:   {attributions}\n")
 
 if __name__ == '__main__':
     main()
