@@ -71,7 +71,7 @@ class NN(pl.LightningModule):
         return loss, scores, target
 
     def configure_optimizers(self):
-        return optim.SGD(self.parameters(), lr=self.lr)
+        return optim.Adam(self.parameters(), lr=self.lr)
 
     def on_train_epoch_end(self):
         if self.current_epoch == self.trainer.max_epochs - 1:
