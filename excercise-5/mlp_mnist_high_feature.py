@@ -132,12 +132,12 @@ def main():
     print("Predictions: ", preds.cpu().numpy())
     print("Ground truth:", labels.cpu().numpy())
 
-    # Captum Integrated Gradients
+    # Integrated Gradients
     print('\n### Integrated Gradents ###############\n')
     ig = IntegratedGradients(model)
     attributions, delta = ig.attribute(samples, target=labels, return_convergence_delta=True)
 
-    attributions = np.reshape(attributions.cpu(), (5, 28, 28))
+    attributions = np.reshape(attributions.cpu(), (NUM_SAMPLES, 28, 28))
     for i in range(len(attributions)):
         plot_2_part_heatmap(np.reshape(samples[i].cpu(), (28, 28)), attributions[i], f'Integrated Gradients\ny_true: {labels[i]}, y_pred: {preds[i]}')
 
@@ -150,19 +150,30 @@ def main():
     )
 
     for i in range(samples.shape[0]):
-        sample = samples[i].unsqueeze(0)  # shape [1, features]
+        sample = samples[i].unsqueeze(0)
         label = labels[i].item()
 
         sample_np = sample.squeeze().cpu().numpy()
+        if len(sample_np.shape) == 1:
+            sample_np = sample_np.reshape((28, 28))
         sample_rgb = np.stack([sample_np]*3, axis=-1)
 
         segments = slic(sample_rgb, n_segments=100, compactness=1)
-        segments = np.unique(segments, return_inverse=True)[1].reshape(segments.shape) # make segments start with 0
+        segments = segments - np.min(segments) # make segments start with 0 to shut down warning
 
-        feature_mask = torch.tensor(segments, dtype=torch.long).unsqueeze(0).to(device)
+        feature_mask = torch.tensor(segments, dtype=torch.long).unsqueeze(0).to(device) # segments [28, 28] -> [1, 28, 28]
+
+        # for mlp, the shapes must be:
+        # sample: (1, 784)
+        # feature_mask: (784)
+        if len(sample.shape) == 2:
+            feature_mask = feature_mask.view(-1)
 
         attributions = lime.attribute(sample, target=label, n_samples=1500, feature_mask=feature_mask)
         attr = attributions.squeeze().cpu().numpy()
+
+        # ensure correct shape for mlp
+        attr = attr.reshape((28, 28))
 
         heatmap = np.zeros_like(segments, dtype=np.float32)
         for seg_val in np.unique(segments):
