@@ -1,8 +1,10 @@
 import torch
 from mlp import NN
+from cnn_mnist import CNN
 
 from extraction import ext_methods
 import torchvision.datasets as datasets
+import torchvision.transforms as transforms
 
 from sklearn.preprocessing import StandardScaler
 import numpy as np
@@ -16,33 +18,27 @@ import matplotlib.pyplot as plt
 from skimage.segmentation import slic
 
 def choose_dataset():
-    print("Choose a feature extracton method:")
-    print("1 - flatten")
-    # print("2 - cnn")
-    choice = input("Enter number (1): ")
+    print("Choose a mnist model:")
+    print("1 - mlp")
+    print("2 - cnn")
+    choice = input("Enter number (1/2): ")
+
+    if choice != '1' and choice != '2':
+        choice = 1
+        print("Invalid choice. Defaulting to flatten.")
 
     if choice == '1':
-        model_name = 'mnist_flatten_best_92.ckpt'
-        dataset = datasets.MNIST(root='./datasets', train=False, transform=ext_methods['flatten'], download=True)
-    # elif choice == '2':
-    #     model_name = 'mnist_edges_all_best_46.ckpt'
-    #     method = 'edges_all'
-    else:
-        print("Invalid choice. Defaulting to flatten.")
-        model_name = 'mnist_flatten_best_92.ckpt'
-        dataset = datasets.MNIST(root='./datasets', train=False, transform=ext_methods['flatten'], download=True)
+        model = NN.load_from_checkpoint('checkpoints/mnist_flatten_best_92.ckpt')
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: x.view(-1))  # Flatten the image into a vector
+        ])
+    elif choice == '2':
+        model = CNN.load_from_checkpoint('checkpoints/mnist_cnn_best_99.ckpt')
+        transform = transforms.ToTensor()
 
-    return model_name, dataset
-
-def plot_heatmap(data, title=''):
-    max_val = np.abs(data).max()
-
-    fig, ax = plt.subplots()
-    im = ax.imshow(data, vmin=-max_val, vmax=max_val, cmap='bwr')
-    if title != '':
-        ax.set_title(title)
-    fig.colorbar(im, ax=ax)
-    plt.show()
+    dataset = datasets.MNIST(root='./datasets', train=False, transform=transform, download=True)
+    return model, dataset
 
 def shuffle_by_value(data):
     unique_data = np.unique(data)
@@ -100,10 +96,7 @@ def plot_3_part_heatmap(original_data, segment_data, attr_data, title=''):
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model_name, dataset = choose_dataset()
-
-    # Load model
-    model = NN.load_from_checkpoint(f'checkpoints/{model_name}')
+    model, dataset = choose_dataset()
     model.to(device)
     model.eval()
 
