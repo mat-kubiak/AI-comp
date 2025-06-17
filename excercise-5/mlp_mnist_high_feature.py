@@ -1,19 +1,16 @@
 import torch
+import numpy as np
+import matplotlib.pyplot as plt
+
 from mlp import NN
 from cnn_mnist import CNN
 
-from extraction import ext_methods
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-
-from sklearn.preprocessing import StandardScaler
-import numpy as np
 
 from captum.attr import IntegratedGradients
 from captum.attr import Lime
 from captum._utils.models.linear_model import SkLearnLinearRegression, SkLearnLasso
-
-import matplotlib.pyplot as plt
 
 from skimage.segmentation import slic
 
@@ -41,6 +38,10 @@ def choose_dataset():
     return model, dataset
 
 def shuffle_by_value(data):
+    """
+        shuffles unique values of an array
+        (i.e. all 3s become 6s and all 6s become 3s)
+    """
     unique_data = np.unique(data)
     shuffled_labels = np.random.permutation(unique_data)
 
@@ -49,6 +50,9 @@ def shuffle_by_value(data):
     return np.vectorize(label_map.get)(data)
 
 def plot_2_part_heatmap(original_data, attr_data, title=''):
+    """
+    plot original image and a heatmap
+    """
     max_val = np.abs(attr_data).max()
 
     fig, axes = plt.subplots(1, 2, figsize=(8, 4))
@@ -69,6 +73,9 @@ def plot_2_part_heatmap(original_data, attr_data, title=''):
     plt.show()
 
 def plot_3_part_heatmap(original_data, segment_data, attr_data, title=''):
+    """
+    plot original image, SLIC segmentation and a heatmap
+    """
     max_val = np.abs(attr_data).max()
 
     fig, axes = plt.subplots(1, 3, figsize=(12, 4))
@@ -93,6 +100,8 @@ def plot_3_part_heatmap(original_data, segment_data, attr_data, title=''):
     plt.tight_layout()
     plt.show()
 
+NUM_SAMPLES = 5
+
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -110,14 +119,8 @@ def main():
     X = np.array(X)
     y = np.array(y)
 
-    # scaler = StandardScaler()
-    # X = scaler.fit_transform(X)
-
-    # Choose 5 random sample indices without replacement
-    num_samples = 5
-    random_indices = np.random.choice(len(X), size=num_samples, replace=False)
-
-    # Select samples and labels at those indices
+    # Choose sample indices
+    random_indices = np.random.choice(len(X), size=NUM_SAMPLES, replace=False)
     samples = torch.tensor(X[random_indices], dtype=torch.float32).to(device)
     labels = torch.tensor(y[random_indices]).to(device)
 
