@@ -153,20 +153,21 @@ def main():
         sample = samples[i].unsqueeze(0)  # shape [1, features]
         label = labels[i].item()
 
-        sample_np = sample.squeeze().cpu().numpy().reshape(28, 28)
+        sample_np = sample.squeeze().cpu().numpy()
         sample_rgb = np.stack([sample_np]*3, axis=-1)
 
         segments = slic(sample_rgb, n_segments=100, compactness=1)
         segments = np.unique(segments, return_inverse=True)[1].reshape(segments.shape) # make segments start with 0
 
-        feature_mask = torch.tensor(segments, dtype=torch.long).view(-1).unsqueeze(0).to(device)
+        feature_mask = torch.tensor(segments, dtype=torch.long).unsqueeze(0).to(device)
 
         attributions = lime.attribute(sample, target=label, n_samples=1500, feature_mask=feature_mask)
         attr = attributions.squeeze().cpu().numpy()
 
         heatmap = np.zeros_like(segments, dtype=np.float32)
         for seg_val in np.unique(segments):
-            heatmap[segments == seg_val] = attr[seg_val]
+            mask = segments == seg_val
+            heatmap[mask] = attr[mask].mean()
 
         plot_3_part_heatmap(sample_rgb, segments, heatmap, title=f'LIME\ny_true: {labels[i]}, y_pred: {preds[i]}')
 
