@@ -1,11 +1,11 @@
 import torch
-from mlp import NN
+import numpy as np
 
-from extraction import ext_methods
-import torchvision.datasets as datasets
+from src.mlp import NN
+from src.extraction import ext_methods
 
 from sklearn.preprocessing import StandardScaler
-import numpy as np
+import torchvision.datasets as datasets
 
 from captum.attr import IntegratedGradients
 from captum.attr import Lime

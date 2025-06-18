@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mlp import NN
-from cnn_mnist import CNN
+from src.mlp import NN
+from src.cnn_mnist import CNN
 
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms

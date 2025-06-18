@@ -1,5 +1,5 @@
 import torch
-from mlp import NN
+from src.mlp import NN
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from sklearn.preprocessing import StandardScaler
 import numpy as np
