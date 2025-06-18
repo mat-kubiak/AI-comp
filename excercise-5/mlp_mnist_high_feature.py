@@ -139,6 +139,7 @@ def main():
     # Captum Integrated Gradients
     print('\n### Integrated Gradents ###############\n')
     ig = IntegratedGradients(model)
+    labels = labels.to(torch.long)  # or labels.long()
     attributions, delta = ig.attribute(samples, target=labels, return_convergence_delta=True)
 
     attributions = np.reshape(attributions.cpu(), (5, 28, 28))
