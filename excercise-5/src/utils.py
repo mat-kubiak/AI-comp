@@ -49,6 +49,23 @@ def shuffle_by_value(data):
 
     return np.vectorize(label_map.get)(data)
 
+def plot_2_perturbed(img_org, img_p, title=''):
+    fig, axes = plt.subplots(1, 2, figsize=(8, 4))
+
+    # Original image
+    axes[0].imshow(img_org, cmap='gray')
+    axes[0].set_title('Original Image')
+
+    # Perturbed image
+    im = axes[1].imshow(img_p, cmap='gray')
+    axes[1].set_title('Perturbed Image')
+
+    if title:
+        fig.suptitle(title)
+
+    plt.tight_layout()
+    plt.show()
+
 def plot_2_part_heatmap(original_data, attr_data, title=''):
     """
     plot original image and a heatmap
