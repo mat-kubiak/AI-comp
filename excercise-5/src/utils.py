@@ -116,3 +116,41 @@ def plot_3_part_heatmap(original_data, segment_data, attr_data, title=''):
 
     plt.tight_layout()
     plt.show()
+
+def plot_2_part_heatmap_rgb(original_data, attr_data, title=''):
+    """
+    plot original image and a heatmap
+    """
+
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+
+    # Original image
+    axes[0].imshow(np.transpose(original_data, (1, 2, 0)))
+    axes[0].set_title('Original Image')
+
+    # Attribution heatmap - Red
+    attr_channel = attr_data[0]
+    max_val = np.abs(attr_channel).max()
+    im = axes[1].imshow(attr_channel, vmin=-max_val, vmax=max_val, cmap='bwr')
+    axes[1].set_title('Attributions R')
+    fig.colorbar(im, ax=axes[1])
+
+    # Attribution heatmap - Green
+    attr_channel = attr_data[1]
+    max_val = np.abs(attr_channel).max()
+    im = axes[2].imshow(attr_channel, vmin=-max_val, vmax=max_val, cmap='bwr')
+    axes[2].set_title('Attributions G')
+    fig.colorbar(im, ax=axes[2])
+
+    # Attribution heatmap - Blue
+    attr_channel = attr_data[2]
+    max_val = np.abs(attr_channel).max()
+    im = axes[3].imshow(attr_channel, vmin=-max_val, vmax=max_val, cmap='bwr')
+    axes[3].set_title('Attributions B')
+    fig.colorbar(im, ax=axes[3])
+
+    if title:
+        fig.suptitle(title)
+
+    plt.tight_layout()
+    plt.show()
