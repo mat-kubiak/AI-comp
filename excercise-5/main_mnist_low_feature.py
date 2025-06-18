@@ -1,15 +1,14 @@
 import torch
 import numpy as np
 
-from src.mlp import NN
-from src.extraction import ext_methods
-
-from sklearn.preprocessing import StandardScaler
 import torchvision.datasets as datasets
 
 from captum.attr import IntegratedGradients
 from captum.attr import Lime
-from captum._utils.models.linear_model import SkLearnLinearRegression, SkLearnLasso
+from captum._utils.models.linear_model import SkLearnLinearRegression
+
+from src.mlp import NN
+from src.extraction import ext_methods
 
 def choose_dataset():
     print("Choose a feature extracton method:")

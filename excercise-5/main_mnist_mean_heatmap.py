@@ -1,18 +1,14 @@
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
-
-from src.mlp import NN
-from src.cnn_mnist import CNN
 
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
 from captum.attr import IntegratedGradients
-from captum.attr import Lime
-from captum._utils.models.linear_model import SkLearnLinearRegression, SkLearnLasso
 
-from skimage.segmentation import slic
+from src.mlp import NN
+from src.cnn_mnist import CNN
+from src.utils import plot_heatmap, collect_samples_per_class
 
 def choose_dataset():
     print("Choose a mnist model:")
@@ -38,42 +34,6 @@ def choose_dataset():
 
     dataset = datasets.MNIST(root='./datasets', train=False, transform=transform, download=True)
     return model, dataset, model_type_str
-
-def plot_heatmap(data, title=''):
-    max_val = np.abs(data).max()
-
-    fig, ax = plt.subplots()
-    im = ax.imshow(data, vmin=-max_val, vmax=max_val, cmap='bwr')
-    if title != '':
-        ax.set_title(title)
-    fig.colorbar(im, ax=ax)
-    plt.show()
-
-def collect_samples_per_class(x, y_true, y_pred, per_class=50, only_correct=True):
-    """
-        Choose `per_class` number of samples for every class by random.
-        You can ensure only correctly guessed samples are taken into account by settng `only_correct` to True.
-    """
-    idx_by_class = {i: [] for i in range(10)}
-
-    # sort dataset into classes
-    for idx in range(len(x)):
-        label = y_true[idx]
-        if only_correct and y_pred[idx] != label:
-            continue
-        idx_by_class[label].append(idx)
-
-    # sample randomly
-    x_by_class = {}
-    y_by_class = {}
-    for cls in range(10):
-        selected = np.random.choice(idx_by_class[cls], per_class, replace=False)
-
-        x_by_class[cls] = [x[i] for i in selected]
-        y_by_class[cls] = [y_pred[i].item() for i in selected]
-        idx_by_class[cls] = selected
-
-    return idx_by_class, x_by_class, y_by_class
 
 NUM_SAMPLES = 100
 

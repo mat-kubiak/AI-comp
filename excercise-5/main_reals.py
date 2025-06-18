@@ -1,12 +1,14 @@
 import torch
-from src.mlp import NN
+import numpy as np
+
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from sklearn.preprocessing import StandardScaler
-import numpy as np
 
 from captum.attr import IntegratedGradients
 from captum.attr import Lime
-from captum._utils.models.linear_model import SkLearnLinearRegression, SkLearnLasso
+from captum._utils.models.linear_model import SkLearnLinearRegression
+
+from src.mlp import NN
 
 def choose_dataset():
     print("Choose a dataset:")
